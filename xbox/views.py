@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import POST_MAX_LENGTH, Following, Post, User
+from .models import User
 
 
 def index(request):
