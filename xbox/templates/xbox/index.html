@@ -1,0 +1,19 @@
+{% extends "network/posts_layout.html" %}
+{% load static %}
+
+{% block details %}
+
+    <h2>All Posts</h2>
+
+    {% if message %}
+        <div>{{ message }}</div>
+    {% endif %}
+    <div id="result-message"></div>
+
+
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/like.js' %}"></script>
+    <script src="{% static 'network/edit.js' %}"></script>
+{% endblock %}
