@@ -3,12 +3,12 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>{% block title %}Social Network{% endblock %}</title>
+        <title>{% block title %}Xbox Wishlist{% endblock %}</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         {% comment %} <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"> {% endcomment %}
         {% comment %} <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> {% endcomment %}
         
-        <link href="{% static 'network/styles.css' %}" rel="stylesheet">
+        <link href="{% static 'xbox/styles.css' %}" rel="stylesheet">
         {% block script %}
         {% endblock %}
         <script src="https://kit.fontawesome.com/4adde4af74.js" crossorigin="anonymous"></script>
@@ -22,19 +22,19 @@
               <ul class="navbar-nav mr-auto">
                 {% if request.user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'get_user' request.user.id %}""><strong>{{ request.user.username }}</strong></a>
+                        {% comment %} <a class="nav-link" href="{% url 'get_user' request.user.id %}"><strong>{{ request.user.username }}</strong></a> {% endcomment %}
                     </li>
                 {% endif %}
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'index' %}">All Posts</a>
                 </li>
                 {% if request.user.is_authenticated %}
-                    <li class="nav-item">
+                    {% comment %} <li class="nav-item">
                         <a class="nav-link" href="{% url 'post' %}">Post</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'following' %}">Following</a>
-                    </li>
+                    </li> {% endcomment %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
                     </li>

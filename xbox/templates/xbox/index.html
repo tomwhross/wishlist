@@ -1,4 +1,4 @@
-{% extends "network/posts_layout.html" %}
+{% extends "xbox/layout.html" %}
 {% load static %}
 
 {% block details %}
@@ -14,6 +14,6 @@
 {% endblock %}
 
 {% block script %}
-    <script src="{% static 'network/like.js' %}"></script>
-    <script src="{% static 'network/edit.js' %}"></script>
+    {% comment %} <script src="{% static 'network/like.js' %}"></script> {% endcomment %}
+    {% comment %} <script src="{% static 'network/edit.js' %}"></script> {% endcomment %}
 {% endblock %}
