@@ -1,7 +1,7 @@
 {% extends "xbox/layout.html" %}
 {% load static %}
 
-{% block details %}
+{% block body %}
 
     <h2>All Posts</h2>
 
@@ -10,6 +10,37 @@
     {% endif %}
     <div id="result-message"></div>
 
+    <div class="container border border-secondary rounded-sm">
+        <div class="row">
+            <div class="col-sm" style="margin: 20px;">
+                <div id="game-view">
+                    <form id="game-form" action="{% url 'add_game' %}" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <textarea autofocus class="form-control" id="game-url" name="game-url" required="required" maxlength="1000" placeholder="URL"></textarea>
+                        </div>
+                        <span class="align-bottom">
+                            <div class="row algin-bottom">
+                                <div class="col">
+                                    <input type="submit" class="btn btn-primary" value="Add Game"/>
+                                </div>
+                            </div>
+                        </span>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form action="{% url 'index' %}">
+        <input class="search" type="text" name="q" placeholder="Search Encyclopedia">
+    </form>
+
+    <div>
+        {% for game in wishlist %}
+            <p>{{ game.title}} - {{ game.current_price }}</p>
+        {% endfor %}
+    </div>
 
 {% endblock %}
 
