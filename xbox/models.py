@@ -17,6 +17,10 @@ class Game(models.Model):
     title = models.TextField(max_length=500, blank=False)
     url = models.TextField(max_length=1000, blank=False)
     current_price = models.DecimalField(max_digits=6, decimal_places=2)
+    noted_sale = models.BooleanField(blank=False)
+    noted_sale_type = models.TextField(
+        max_length=255, blank=True, null=True, default=None
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

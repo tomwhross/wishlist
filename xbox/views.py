@@ -1,27 +1,25 @@
-import json
+"""
+django views
+"""
 
-import requests
-import xmltodict
-from bs4 import BeautifulSoup
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
+
+# from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
 from .models import Game, GameDetails, User
-
-KEY = "0bcdc2b6d79c75d47c698db492d71d613f8e1458"
+from .util import get_giantbomb_game_details, scrape_xbox_store_game_page
 
 
 def index(request):
 
+    # TODO: this should be a post request
     search_entry = request.GET.get("q", None)
-    import pdb
 
-    pdb.set_trace()
     if search_entry:
         games = Game.objects.filter(title__contains=search_entry).order_by(
             "-current_price"
@@ -108,69 +106,22 @@ def add_game(request):
         # if the game does not exist and return the game
         # otherwise return the game
         if not game:
+            xbox_store_page = scrape_xbox_store_game_page(url)
 
-            # scrape the game's Xbox Store page
-            # and parse the game page title
-            response = requests.get(url)
-            soup = BeautifulSoup(response.content, "html.parser")
-            title = (
-                soup.title.text.replace("Buy ", "")
-                .replace(" - Microsoft Store en-CA", "")
-                .replace("™", "")  # TODO: remove this?
-                .replace("\u2122", "")
+            giantbomb_game_details = get_giantbomb_game_details(
+                xbox_store_page["title"]
             )
-
-            # this is the prefix of current element that contains the current price
-            # subject to change without warning!
-            price_element_id_prefix = "ProductPrice_productPrice_PriceContainer-"
-
-            # the price container element changes throughout the day
-            # currently, only the number suffix changes
-            # have seen as high as 11, but trying 50
-            for i in range(0, 50):
-                price_element_id = f"{price_element_id_prefix}{i}"
-                price_element = soup.find(id=price_element_id)
-
-                try:
-                    price_element_text = price_element.text
-                except AttributeError:
-                    continue
-                else:
-                    # once the price text has been located, parse out the decimal price
-                    price = price_element_text.replace("CAD $", "").replace(
-                        "+Offers in-app purchases", ""
-                    )
-                    break
-
-            # prepare payload and headers for call to Giantbomb API to get game details
-            payload = {
-                "api_key": KEY,
-                "format": "json",
-                "query": title,
-                "resource": "game",
-                "field_list": "id,guid,name,image",
-            }
-            headers = {"User-Agent": "Xbox Wishlist App"}
-
-            # searching Giantbomb for the game
-            # currently their search is very good so assuming the first result
-            # is the game we're looking for
-            giantbomb_response = requests.get(
-                "https://www.giantbomb.com/api/search/",
-                params=payload,
-                headers=headers,
-            )
-
-            giantbomb_game = json.loads(giantbomb_response.content)["results"][0]
 
             # create the game
-            # note if price could not be found, assume $0.00
-            try:
-                price
-            except NameError:
-                price = 0
 
-            game = Game(url=url, title=title, user=request.user, current_price=price)
+            game = Game(
+                url=url,
+                title=xbox_store_page["title"],
+                user=request.user,
+                current_price=xbox_store_page["price"],
+                noted_sale=xbox_store_page["noted_sale"],
+                noted_sale_type=xbox_store_page["noted_sale_type"],
+            )
             # TODO: might remove this, currently game added is auto added to user's wishlist
             game.user = request.user
             game.save()
@@ -178,24 +129,14 @@ def add_game(request):
             # add the game details from Giantbomb
             game_details = GameDetails(
                 game=game,
-                name=giantbomb_game["name"],
-                gbid=giantbomb_game["id"],
-                guid=giantbomb_game["guid"],
-                image=giantbomb_game["image"]["original_url"],
+                name=giantbomb_game_details["name"],
+                gbid=giantbomb_game_details["id"],
+                guid=giantbomb_game_details["guid"],
+                image=giantbomb_game_details["image"]["original_url"],
             )
             game_details.save()
 
         else:
             print("Game exists")
 
-    else:
-
-        return render(
-            request,
-            "xbox/index.html",
-            {
-                "wishlist": Game.objects.filter(user=request.user).order_by(
-                    "-current_price"
-                )
-            },
-        )
+    return HttpResponseRedirect(reverse("index"))
