@@ -33,12 +33,12 @@
     </div>
 
     <form action="{% url 'index' %}">
-        <input class="search" type="text" name="q" placeholder="Search Encyclopedia">
+        <input class="search" type="text" name="q" placeholder="Search Games">
     </form>
 
     <div>
         {% for game in wishlist %}
-            <p>{{ game.title}} - {{ game.current_price }} - {{ game.noted_sale }} - {{ game.noted_sale_type }} - {{ game.url }}</p>
+            <p>{{ game.title}} - {{ game.current_price }} - {{ game.noted_sale }} - {{ game.noted_sale_type }} - {{ game.discount }} - Last price: {{ game.last_price }} - Lowest price: {{ game.lowest_price }}</p>
         {% endfor %}
     </div>
 

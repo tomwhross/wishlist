@@ -38,9 +38,9 @@ class Game(models.Model):
 
         return (
             GamePriceHistory.objects.filter(game=self)
-            .values("game", "price")
+            .values("price")
             .annotate(created_at=models.Max("created_at"))
-            .order_by("-created_at")[0]
+            .order_by("-created_at")[0]["price"]
         )
 
     @property
@@ -58,7 +58,28 @@ class Game(models.Model):
         if self.current_price < previous_low["price"]:
             return self.current_price
 
-        return previous_low
+        return previous_low["price"]
+
+    @property
+    def highest_price(self):
+        """
+        Returns the highest recorded price for a game
+        """
+
+        previous_high = (
+            GamePriceHistory.objects.filter(game=self)
+            .values("price")
+            .order_by("-price")[0]
+        )
+
+        if self.current_price < previous_high["price"]:
+            return self.current_price
+
+        return previous_high["price"]
+
+    @property
+    def discount(self):
+        return 1 - self.current_price / self.highest_price
 
     # @property
     # def user_count(self):
