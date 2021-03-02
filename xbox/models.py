@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+# from django.db.models import Max
+
 
 class User(AbstractUser):
     pass
@@ -28,6 +30,36 @@ class Game(models.Model):
     def __str__(self):
         return f"{self.title}"
 
+    @property
+    def last_price(self):
+        """
+        Returns the last recorded price for a game prior to the current price
+        """
+
+        return (
+            GamePriceHistory.objects.filter(game=self)
+            .values("game", "price")
+            .annotate(created_at=models.Max("created_at"))
+            .order_by("-created_at")[0]
+        )
+
+    @property
+    def lowest_price(self):
+        """
+        Returns the lowest recorded price for a game
+        """
+
+        previous_low = (
+            GamePriceHistory.objects.filter(game=self)
+            .values("price")
+            .order_by("price")[0]
+        )
+
+        if self.current_price < previous_low["price"]:
+            return self.current_price
+
+        return previous_low
+
     # @property
     # def user_count(self):
     #     """
@@ -54,9 +86,17 @@ class GameDetails(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-    # @property
-    # def user_count(self):
-    #     """
-    #     A count of how many users have a game on their wishlist
-    #     """
-    #     return self.user.count()
+
+class GamePriceHistory(models.Model):
+    """
+    A game can have a history of prices
+    Used to help track general price drops
+    """
+
+    game = models.ForeignKey(
+        "Game", on_delete=models.CASCADE, related_name="price_histories"
+    )
+    price = models.DecimalField(max_digits=6, decimal_places=2)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)

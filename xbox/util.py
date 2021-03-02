@@ -9,6 +9,8 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
+from .models import Game, GamePriceHistory
+
 
 def scrape_xbox_store_game_page(url):
     """
@@ -19,7 +21,7 @@ def scrape_xbox_store_game_page(url):
     # scrape the game's Xbox Store page
     # and parse the game page title
     price = None
-    noted_sale = None
+    noted_sale = False
     noted_sale_type = None
 
     response = requests.get(url)
@@ -38,13 +40,22 @@ def scrape_xbox_store_game_page(url):
     xbox_gold_sale_price_containers = soup.find_all(
         "div", {"class": "remediation-cta-label"}
     )
-    price = re.findall(r"\d+\.\d+", xbox_gold_sale_price_containers[0].text)[0]
-    if price:
+    if xbox_gold_sale_price_containers:
+        price = re.findall(r"\d+\.\d+", xbox_gold_sale_price_containers[0].text)[0]
         noted_sale = True
         noted_sale_type = "Xbox Gold Sale"
 
+    publisher_sale_price_containers = soup.find_all(
+        "span", {"class": "price-disclaimer"}
+    )
+    if publisher_sale_price_containers:
+        price = re.findall(r"\d+\.\d+", publisher_sale_price_containers[0].text)[0]
+        noted_sale = True
+        noted_sale_type = "Publisher Sale"
+
     # if no Xbox Gold sale price was retrieved, get the current regular price
     if not price:
+
         # this is the prefix of current element that contains the current price
         # subject to change without warning!
         price_element_id_prefix = "ProductPrice_productPrice_PriceContainer-"
@@ -73,6 +84,27 @@ def scrape_xbox_store_game_page(url):
         "noted_sale": noted_sale,
         "noted_sale_type": noted_sale_type,
     }
+
+
+def update_game_price(games):
+    """
+    Takes a set of game objects and updates the price if the current price in
+    the Xbox Store is different that the currently stored price in the app
+    """
+
+    for game in games:
+        xbox_store_game_details = scrape_xbox_store_game_page(game.url)
+
+        if xbox_store_game_details["price"] != str(game.current_price):
+            game_price_history = GamePriceHistory(game=game, price=game.current_price)
+            game.current_price = xbox_store_game_details["price"]
+            game.noted_sale = xbox_store_game_details["noted_sale"]
+            game.noted_sale_type = xbox_store_game_details["noted_sale_type"]
+
+            game_price_history.save()
+            game.save()
+
+    return games
 
 
 def get_giantbomb_api_key():

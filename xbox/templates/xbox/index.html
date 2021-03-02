@@ -38,7 +38,7 @@
 
     <div>
         {% for game in wishlist %}
-            <p>{{ game.title}} - {{ game.current_price }}</p>
+            <p>{{ game.title}} - {{ game.current_price }} - {{ game.noted_sale }} - {{ game.noted_sale_type }} - {{ game.url }}</p>
         {% endfor %}
     </div>
 

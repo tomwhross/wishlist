@@ -12,7 +12,11 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from .models import Game, GameDetails, User
-from .util import get_giantbomb_game_details, scrape_xbox_store_game_page
+from .util import (
+    get_giantbomb_game_details,
+    scrape_xbox_store_game_page,
+    update_game_price,
+)
 
 
 def index(request):
@@ -137,6 +141,7 @@ def add_game(request):
             game_details.save()
 
         else:
-            print("Game exists")
+            print("Game exists, updating")
+            game = update_game_price(game)
 
     return HttpResponseRedirect(reverse("index"))
