@@ -15,7 +15,8 @@ class Game(models.Model):
     can exist without being on a wishlist
     """
 
-    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="games")
+    # user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="games")
+    wishlist_users = models.ManyToManyField("User", blank=True, related_name="wishlist")
     title = models.TextField(max_length=500, blank=False)
     url = models.TextField(max_length=1000, blank=False)
     current_price = models.DecimalField(max_digits=6, decimal_places=2)
@@ -28,20 +29,30 @@ class Game(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.title}"
+        if self.noted_sale:
+            return f"{self.title} is on sale for ${self.current_price}"
+
+        return f"{self.title} is not on sale, at ${self.current_price}"
 
     @property
-    def last_price(self):
+    def regular_price(self):
         """
         Returns the last recorded price for a game prior to the current price
         """
 
-        return (
-            GamePriceHistory.objects.filter(game=self)
-            .values("price")
-            .annotate(created_at=models.Max("created_at"))
-            .order_by("-created_at")[0]["price"]
+        if not self.noted_sale:
+            return self.current_price
+
+        historical_regular_price = (
+            GamePriceHistory.objects.filter(game=self, noted_sale=False)
+            .order_by("-created_at")
+            .first()
         )
+
+        if historical_regular_price:
+            return historical_regular_price.price
+
+        return "New entry on sale, unknown regular price"
 
     @property
     def lowest_price(self):
@@ -50,43 +61,38 @@ class Game(models.Model):
         """
 
         previous_low = (
-            GamePriceHistory.objects.filter(game=self)
-            .values("price")
-            .order_by("price")[0]
+            GamePriceHistory.objects.filter(game=self).order_by("price").first()
         )
 
-        if self.current_price < previous_low["price"]:
-            return self.current_price
+        if previous_low:
+            return previous_low.price
 
-        return previous_low["price"]
-
-    @property
-    def highest_price(self):
-        """
-        Returns the highest recorded price for a game
-        """
-
-        previous_high = (
-            GamePriceHistory.objects.filter(game=self)
-            .values("price")
-            .order_by("-price")[0]
-        )
-
-        if self.current_price < previous_high["price"]:
-            return self.current_price
-
-        return previous_high["price"]
+        return 0.00
 
     @property
     def discount(self):
-        return 1 - self.current_price / self.highest_price
+        """
+        Return a discount percentage if there is a sale
+        """
+        if self.noted_sale and not isinstance(self.regular_price, str):
+            return 1 - self.current_price / self.regular_price
 
-    # @property
-    # def user_count(self):
-    #     """
-    #     A count of how many users have a game on their wishlist
-    #     """
-    #     return self.user.count()
+        return 0
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "url": self.url,
+            "wishlist_users": [user.email for user in self.wishlist_users.all()],
+            "current_price": float(self.current_price),
+            "noted_sale": self.noted_sale,
+            "noted_sale_type": self.noted_sale_type,
+            "created_at": self.created_at.strftime("%b %-d %Y, %-I:%M %p"),
+            "regular_price": self.regular_price,
+            "lowest_price": self.lowest_price,
+            "discount": self.discount,
+        }
 
 
 class GameDetails(models.Model):
@@ -118,6 +124,10 @@ class GamePriceHistory(models.Model):
         "Game", on_delete=models.CASCADE, related_name="price_histories"
     )
     price = models.DecimalField(max_digits=6, decimal_places=2)
+    noted_sale = models.BooleanField(blank=False)
+    noted_sale_type = models.TextField(
+        max_length=255, blank=True, null=True, default=None
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

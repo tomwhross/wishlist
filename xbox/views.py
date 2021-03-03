@@ -39,7 +39,11 @@ def index(request):
     return render(
         request,
         "xbox/index.html",
-        {"wishlist": Game.objects.filter(user=request.user).order_by("-current_price")},
+        {
+            "wishlist": Game.objects.filter(wishlist_users=request.user).order_by(
+                "-current_price"
+            )
+        },
     )
 
 
@@ -104,6 +108,7 @@ def add_game(request):
     """
 
     if request.method == "POST":
+
         url = request.POST["game-url"]
         game = Game.objects.filter(url=url)
 
@@ -121,14 +126,14 @@ def add_game(request):
             game = Game(
                 url=url,
                 title=xbox_store_page["title"],
-                user=request.user,
                 current_price=xbox_store_page["price"],
                 noted_sale=xbox_store_page["noted_sale"],
                 noted_sale_type=xbox_store_page["noted_sale_type"],
             )
+            game.save()  # setting id is required before adding ManyToMany relationships
+
             # TODO: might remove this, currently game added is auto added to user's wishlist
-            game.user = request.user
-            game.save()
+            game.wishlist_users.add(request.user)
 
             # add the game details from Giantbomb
             game_details = GameDetails(

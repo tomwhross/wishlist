@@ -95,9 +95,6 @@ def update_game_price(games):
     for game in games:
         xbox_store_game_details = scrape_xbox_store_game_page(game.url)
 
-        import pdb
-
-        pdb.set_trace()
         if xbox_store_game_details["price"] != str(game.current_price):
             game_price_history = GamePriceHistory(game=game, price=game.current_price)
             game.current_price = xbox_store_game_details["price"]
