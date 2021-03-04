@@ -15,36 +15,50 @@ from .models import Game, GameDetails, User
 from .util import (
     get_giantbomb_game_details,
     scrape_xbox_store_game_page,
-    update_game_price,
+    update_games_price,
 )
 
 
 def index(request):
+    if request.user.is_authenticated:
 
-    # TODO: this should be a post request
-    search_entry = request.GET.get("q", None)
+        # TODO: this should be a post request
+        search_entry = request.GET.get("q", None)
 
-    if search_entry:
-        games = Game.objects.filter(title__contains=search_entry).order_by(
-            "-current_price"
-        )
-        search_entry = None
+        if search_entry:
+            games = Game.objects.filter(title__contains=search_entry).order_by(
+                "-current_price"
+            )
+            search_entry = None
+
+            return render(
+                request,
+                "xbox/index.html",
+                {"wishlist": games},
+            )
 
         return render(
             request,
             "xbox/index.html",
-            {"wishlist": games},
+            {
+                "wishlist": Game.objects.filter(wishlist_users=request.user).order_by(
+                    "-current_price"
+                )
+            },
         )
 
-    return render(
-        request,
-        "xbox/index.html",
-        {
-            "wishlist": Game.objects.filter(wishlist_users=request.user).order_by(
-                "-current_price"
-            )
-        },
+    return HttpResponseRedirect(reverse("login"))
+
+
+@login_required
+def wishlist(request):
+    print("here")
+
+    wishlist_games = Game.objects.filter(wishlist_users=request.user).order_by(
+        "-current_price"
     )
+
+    return JsonResponse([game.serialize() for game in wishlist_games], safe=False)
 
 
 def login_view(request):
@@ -110,11 +124,12 @@ def add_game(request):
     if request.method == "POST":
 
         url = request.POST["game-url"]
-        game = Game.objects.filter(url=url)
+        games = Game.objects.filter(url=url)
 
         # if the game does not exist and return the game
         # otherwise return the game
-        if not game:
+
+        if not games:
             xbox_store_page = scrape_xbox_store_game_page(url)
 
             giantbomb_game_details = get_giantbomb_game_details(
@@ -147,6 +162,9 @@ def add_game(request):
 
         else:
             print("Game exists, updating")
-            game = update_game_price(game)
+
+            update_games_price(games)
+
+            [game.wishlist_users.add(request.user) for game in games]
 
     return HttpResponseRedirect(reverse("index"))

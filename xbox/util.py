@@ -86,7 +86,7 @@ def scrape_xbox_store_game_page(url):
     }
 
 
-def update_game_price(games):
+def update_games_price(games):
     """
     Takes a set of game objects and updates the price if the current price in
     the Xbox Store is different that the currently stored price in the app

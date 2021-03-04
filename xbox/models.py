@@ -84,7 +84,7 @@ class Game(models.Model):
             "id": self.id,
             "title": self.title,
             "url": self.url,
-            "wishlist_users": [user.email for user in self.wishlist_users.all()],
+            "wishlist_users": [user.id for user in self.wishlist_users.all()],
             "current_price": float(self.current_price),
             "noted_sale": self.noted_sale,
             "noted_sale_type": self.noted_sale_type,

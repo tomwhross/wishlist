@@ -42,9 +42,20 @@
         {% endfor %}
     </div>
 
+    <div id="wishlist-view">
+        <div id="wishlist-header"></div>
+        <div class="row" style="padding: 5px; margin: 5px;">
+            <div class="col-sm" style="text-align: center;"><h5>Title</h5></div>
+            <div class="col-sm" style="text-align: center;"><h5>Current Price</h5></div>
+            <div class="col-sm" style="text-align: center;"><h5>Sale</h5></div>
+            <div class="col-sm" style="text-align: center;"><h5>Regular Price</h5></div>
+        </div>
+        <div id="wishlist-view-list" class="container">
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block script %}
-    {% comment %} <script src="{% static 'network/like.js' %}"></script> {% endcomment %}
-    {% comment %} <script src="{% static 'network/edit.js' %}"></script> {% endcomment %}
+    <script src="{% static 'xbox/index.js' %}"></script>
 {% endblock %}
