@@ -3,7 +3,26 @@
 
 {% block body %}
 
-    <h2>All Posts</h2>
+    <div id="nav-buttons" style="padding-left: 10px; padding-right: 10px; margin-top: 5px;">
+        <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="sale-games-button">Sale</button>
+        <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="wishlist-games-button">Wishlist</button>
+        <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="all-games-button">All</button>
+        {% comment %} <button class="btn btn-sm btn-outline-primary" id="archived">Archived</button> {% endcomment %}
+        {% comment %} <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a> {% endcomment %}
+        <span class="contentcontainer med left" style="float: right">
+         {% comment %} <form action="{% url 'gamelist' 'search' %}"> {% endcomment %}
+            {% comment %} <input class="search" type="text" name="q" placeholder="Search Games"> {% endcomment %}
+        {% comment %} </form> {% endcomment %}
+            <form id="search-form" onsubmit="return false;">
+                <div class="form-group" style="display: inline-block;">
+                    <input class="form-control" id="search-entry" placeholder="Search">
+                </div>
+                <input type="submit" class="btn btn-primary" style="margin-top: -3px;"/>
+            </form>
+        </span>
+    </div>
+
+    <h2>Games on Sale</h2>
 
     {% if message %}
         <div>{{ message }}</div>
@@ -32,25 +51,15 @@
         </div>
     </div>
 
-    <form action="{% url 'index' %}">
-        <input class="search" type="text" name="q" placeholder="Search Games">
-    </form>
-
-    <div>
-        {% for game in wishlist %}
-            <p>{{ game.title}} - {{ game.current_price }} - {{ game.noted_sale }} - {{ game.noted_sale_type }} - {{ game.discount }} - Lowest price: {{ game.lowest_price }}</p>
-        {% endfor %}
-    </div>
-
-    <div id="wishlist-view">
-        <div id="wishlist-header"></div>
+    <div id="gamelist-view">
+        <div id="gamelist-header"></div>
         <div class="row" style="padding: 5px; margin: 5px;">
             <div class="col-sm" style="text-align: center;"><h5>Title</h5></div>
             <div class="col-sm" style="text-align: center;"><h5>Current Price</h5></div>
             <div class="col-sm" style="text-align: center;"><h5>Sale</h5></div>
             <div class="col-sm" style="text-align: center;"><h5>Regular Price</h5></div>
         </div>
-        <div id="wishlist-view-list" class="container">
+        <div id="gamelist-view-list" class="container">
         </div>
     </div>
 

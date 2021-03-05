@@ -29,7 +29,6 @@ def index(request):
             games = Game.objects.filter(title__contains=search_entry).order_by(
                 "-current_price"
             )
-            search_entry = None
 
             return render(
                 request,
@@ -51,14 +50,30 @@ def index(request):
 
 
 @login_required
-def wishlist(request):
-    print("here")
+def view_gamelist(request, gamelist):
 
-    wishlist_games = Game.objects.filter(wishlist_users=request.user).order_by(
-        "-current_price"
-    )
+    if gamelist == "wishlist-games":
+        games = Game.objects.filter(wishlist_users=request.user).order_by(
+            "-current_price"
+        )
+    elif gamelist == "sale-games":
+        games = Game.objects.filter(noted_sale=True).order_by("-current_price")
+    else:
+        # all games
+        games = Game.objects.all()
 
-    return JsonResponse([game.serialize() for game in wishlist_games], safe=False)
+    return JsonResponse([game.serialize() for game in games], safe=False)
+
+
+def search(request, search_entry):
+
+    import pdb
+
+    pdb.set_trace()
+    print("in search")
+    games = Game.objects.filter(title__contains=search_entry)
+
+    return JsonResponse([game.serialize() for game in games], safe=False)
 
 
 def login_view(request):
