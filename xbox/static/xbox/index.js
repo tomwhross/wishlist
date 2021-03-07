@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('login').style.display = 'none';
+  document.getElementById("add-game").style.display = 'none';
 
   // Use buttons to toggle between views
   document.querySelector('#sale-games-button').addEventListener('click', () => load_gamelist('sale-games'));
@@ -73,7 +74,9 @@ function view_game(game_id) {
 
 function view_games(games) {
 
+  document.querySelector('#login').style.display = 'none';
   document.querySelector('#game-view').style.display = 'none';
+  document.getElementById("add-game").style.display = 'none';
   document.querySelector('#gamelist-view-list').style.display = 'block'
 
   const gamelist_list = document.querySelector('#gamelist-view-list');
@@ -107,11 +110,11 @@ function view_games(games) {
     console.log(game.is_wishlist_user);
     if (game.is_wishlist_user === true) {
       wishlist_indicator.className = 'fas fa-star';
-      wishlist_indicator.style.color = 'gold';
+      wishlist_indicator.style.color = '#007bff';
     }
     else {
       wishlist_indicator.className = 'far fa-star';
-      wishlist_indicator.style.color = 'gold';
+      wishlist_indicator.style.color = '#007bff';
     }
     
     wishlist_indicator_container.append(wishlist_indicator);
@@ -134,11 +137,11 @@ function view_games(games) {
       .then(game => {
         if (game.is_wishlist_user === true) {
           wishlist_indicator.className = 'fas fa-star';
-          wishlist_indicator.style.color = 'gold';
+          wishlist_indicator.style.color = '#007bff';
         }
         else {
           wishlist_indicator.className = 'far fa-star';
-          wishlist_indicator.style.color = 'gold';
+          wishlist_indicator.style.color = '#007bff';
         }
       });
     }
@@ -211,7 +214,13 @@ function search() {
     fetch(`/search/${search_entry}`)
     .then(response => response.json())
     .then(games => {
-      view_games(games)
+      if (games.length > 0) {
+        view_games(games);
+      }
+      else {
+        document.querySelector('#gamelist-view').style.display = 'none';
+        document.getElementById('add-game').style.display = 'block';
+      }
     });
   }
 

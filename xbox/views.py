@@ -120,7 +120,9 @@ def search(request, search_entry):
 
 def login_view(request):
     if request.method == "POST":
+        import pdb
 
+        pdb.set_trace()
         # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]
@@ -222,6 +224,6 @@ def add_game(request):
 
             update_games_price(games)
 
-            [game.wishlist_users.add(request.user) for game in games]
+            _ = [game.wishlist_users.add(request.user) for game in games]
 
     return HttpResponseRedirect(reverse("index"))

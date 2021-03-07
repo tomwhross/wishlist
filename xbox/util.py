@@ -41,9 +41,13 @@ def scrape_xbox_store_game_page(url):
         "div", {"class": "remediation-cta-label"}
     )
     if xbox_gold_sale_price_containers:
-        price = re.findall(r"\d+\.\d+", xbox_gold_sale_price_containers[0].text)[0]
-        noted_sale = True
-        noted_sale_type = "Xbox Gold Sale"
+        try:
+            price = re.findall(r"\d+\.\d+", xbox_gold_sale_price_containers[0].text)[0]
+        except IndexError:
+            price = 0
+        else:
+            noted_sale = True
+            noted_sale_type = "Xbox Gold Sale"
 
     publisher_sale_price_containers = soup.find_all(
         "span", {"class": "price-disclaimer"}
