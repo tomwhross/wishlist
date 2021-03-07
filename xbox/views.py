@@ -1,6 +1,7 @@
 """
 django views
 """
+import json
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -10,9 +11,11 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Game, GameDetails, User
 from .util import (
+    check_if_game_on_wishlist,
     get_giantbomb_game_details,
     scrape_xbox_store_game_page,
     update_games_price,
@@ -46,13 +49,22 @@ def index(request):
             },
         )
 
-    return HttpResponseRedirect(reverse("login"))
+    # return HttpResponseRedirect(reverse("login"))
+
+    return render(
+        request,
+        "xbox/index.html",
+    )
 
 
-@login_required
+# @login_required
 def view_gamelist(request, gamelist):
 
     if gamelist == "wishlist-games":
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {"error": "At least one recipient required."}, status=401
+            )
         games = Game.objects.filter(wishlist_users=request.user).order_by(
             "-current_price"
         )
@@ -62,18 +74,48 @@ def view_gamelist(request, gamelist):
         # all games
         games = Game.objects.all()
 
-    return JsonResponse([game.serialize() for game in games], safe=False)
+    return JsonResponse([game.serialize(request.user) for game in games], safe=False)
+
+
+# @login_required
+@csrf_exempt
+def star_game(request, game_id):
+    import pdb
+
+    pdb.set_trace()
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        if data.get("starred") is not None:
+            game = Game.objects.get(id=game_id)
+            game.wishlist_users.add(request.user)
+            game.save()
+
+    return JsonResponse(game.serialize(request.user))
+
+
+# @csrf_exempt
+def view_game(request, game_id):
+
+    game = Game.objects.get(id=game_id)
+    if request.method == "PUT":
+
+        data = json.loads(request.body)
+        if data.get("starred") is not None:
+            game = Game.objects.get(id=game_id)
+            if not request.user in game.wishlist_users.all():
+                game.wishlist_users.add(request.user)
+            else:
+                game.wishlist_users.remove(request.user)
+            game.save()
+
+    return JsonResponse(game.serialize(request.user))
 
 
 def search(request, search_entry):
 
-    import pdb
-
-    pdb.set_trace()
-    print("in search")
     games = Game.objects.filter(title__contains=search_entry)
 
-    return JsonResponse([game.serialize() for game in games], safe=False)
+    return JsonResponse([game.serialize(request.user) for game in games], safe=False)
 
 
 def login_view(request):

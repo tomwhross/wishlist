@@ -79,19 +79,28 @@ class Game(models.Model):
 
         return 0
 
-    def serialize(self):
+    def is_wishlist_user(self, user):
+
+        if user in self.wishlist_users.filter(id=user.id):
+            return True
+        return False
+
+    def serialize(self, user=None):
+
         return {
             "id": self.id,
             "title": self.title,
             "url": self.url,
-            "wishlist_users": [user.id for user in self.wishlist_users.all()],
-            "current_price": float(self.current_price),
+            # "wishlist_users": [user.id for user in self.wishlist_users.all()],
+            "is_wishlist_user": self.is_wishlist_user(user),
+            "current_price": f"${str(self.current_price)}",
             "noted_sale": self.noted_sale,
             "noted_sale_type": self.noted_sale_type,
             "created_at": self.created_at.strftime("%b %-d %Y, %-I:%M %p"),
             "regular_price": self.regular_price,
             "lowest_price": self.lowest_price,
             "discount": self.discount,
+            "image": self.details.first().image,
         }
 
 

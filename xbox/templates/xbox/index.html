@@ -10,26 +10,38 @@
         {% comment %} <button class="btn btn-sm btn-outline-primary" id="archived">Archived</button> {% endcomment %}
         {% comment %} <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a> {% endcomment %}
         <span class="contentcontainer med left" style="float: right">
-         {% comment %} <form action="{% url 'gamelist' 'search' %}"> {% endcomment %}
-            {% comment %} <input class="search" type="text" name="q" placeholder="Search Games"> {% endcomment %}
-        {% comment %} </form> {% endcomment %}
             <form id="search-form" onsubmit="return false;">
                 <div class="form-group" style="display: inline-block;">
-                    <input class="form-control" id="search-entry" placeholder="Search">
+                    <input class="form-control" id="search-entry" placeholder="Game title">
                 </div>
-                <input type="submit" class="btn btn-primary" style="margin-top: -3px;"/>
+                <input type="submit" class="btn btn-primary" style="margin-top: -3px;" value="Search"/>
             </form>
         </span>
     </div>
 
-    <h2>Games on Sale</h2>
+    <h2 id="view-heading" style="margin: 5px; padding: 5px;">Games on Sale</h2>
 
     {% if message %}
         <div>{{ message }}</div>
     {% endif %}
     <div id="result-message"></div>
 
-    <div class="container border border-secondary rounded-sm">
+    <div id="login">
+        <form action="{% url 'login' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <input autofocus class="form-control" type="email" name="email" placeholder="Email">
+            </div>
+            <div class="form-group">
+                <input class="form-control" type="password" name="password" placeholder="Password">
+            </div>
+            <input class="btn btn-primary" type="submit" value="Login">
+        </form>
+
+        Don't have an account? <a href="{% url 'register' %}">Register here.</a>
+    </div>
+
+    {% comment %} <div class="container border border-secondary rounded-sm">
         <div class="row">
             <div class="col-sm" style="margin: 20px;">
                 <div id="game-view">
@@ -49,19 +61,21 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> {% endcomment %}
 
     <div id="gamelist-view">
         <div id="gamelist-header"></div>
-        <div class="row" style="padding: 5px; margin: 5px;">
+        {% comment %} <div class="row" style="padding: 5px; margin: 5px;">
             <div class="col-sm" style="text-align: center;"><h5>Title</h5></div>
             <div class="col-sm" style="text-align: center;"><h5>Current Price</h5></div>
             <div class="col-sm" style="text-align: center;"><h5>Sale</h5></div>
             <div class="col-sm" style="text-align: center;"><h5>Regular Price</h5></div>
-        </div>
+        </div> {% endcomment %}
         <div id="gamelist-view-list" class="container">
         </div>
     </div>
+
+    <div id="game-view"></div
 
 {% endblock %}
 

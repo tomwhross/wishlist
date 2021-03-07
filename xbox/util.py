@@ -86,6 +86,14 @@ def scrape_xbox_store_game_page(url):
     }
 
 
+def check_if_game_on_wishlist(games, user):
+    for game in games:
+        if user in game.wishlist_users:
+            game.on_wishlist = True
+
+    return games
+
+
 def update_games_price(games):
     """
     Takes a set of game objects and updates the price if the current price in
