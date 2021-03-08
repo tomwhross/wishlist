@@ -40,6 +40,7 @@ function view_game(game_id) {
   // create an element to display the email and blank it out
   const game_view = document.querySelector('#game-view'); 
   game_view.innerHTML = '';
+  console.log('before the fetch');
 
   fetch(`/game/${game_id}`)
   .then(response => response.json())
@@ -61,6 +62,7 @@ function view_game(game_id) {
     regular_price.innerHTML = game.regular_price;
     store_link.href = game.url;
     store_link.innerHTML = `Store page for ${game.title}`
+    console.log('settlings the elements up');
 
     image_container.append(image);
     store_link_container.append(store_link);
@@ -195,13 +197,13 @@ function view_games(games) {
     regular_price.className = 'col-sm';
     regular_price.style.textAlign = 'center';
 
-    linkable_elements = [title, image_container];
+    // linkable_elements = [title, image_container];
     // linkable_elements = [div_col_image, div_col_info];
-    linkable_elements.forEach(function(linkable_element) {
-      linkable_element.onclick = function() {
-        view_game(game.id);
-      }
-    });
+    // linkable_elements.forEach(function(linkable_element) {
+    //   linkable_element.onclick = function() {
+    //     view_game(game.id);
+    //   }
+    // });
 
     // add the content to the divs
     title.innerHTML = game.title;
