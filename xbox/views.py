@@ -5,8 +5,6 @@ import json
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-
-# from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -63,7 +61,7 @@ def view_gamelist(request, gamelist):
     if gamelist == "wishlist-games":
         if not request.user.is_authenticated:
             return JsonResponse(
-                {"error": "At least one recipient required."}, status=401
+                {"error": "Must be logged in to view wishlist"}, status=401
             )
         games = Game.objects.filter(wishlist_users=request.user).order_by(
             "-current_price"
@@ -77,36 +75,27 @@ def view_gamelist(request, gamelist):
     return JsonResponse([game.serialize(request.user) for game in games], safe=False)
 
 
-# @login_required
-@csrf_exempt
-def star_game(request, game_id):
-    import pdb
-
-    pdb.set_trace()
-    if request.method == "PUT":
-        data = json.loads(request.body)
-        if data.get("starred") is not None:
-            game = Game.objects.get(id=game_id)
-            game.wishlist_users.add(request.user)
-            game.save()
-
-    return JsonResponse(game.serialize(request.user))
-
-
-# @csrf_exempt
 def view_game(request, game_id):
 
     game = Game.objects.get(id=game_id)
-    if request.method == "PUT":
 
-        data = json.loads(request.body)
-        if data.get("starred") is not None:
-            game = Game.objects.get(id=game_id)
-            if not request.user in game.wishlist_users.all():
-                game.wishlist_users.add(request.user)
-            else:
-                game.wishlist_users.remove(request.user)
-            game.save()
+    # Add or remove a game from a wishlist
+    if request.method == "PUT":
+        if request.user.is_authenticated:
+
+            data = json.loads(request.body)
+            if data.get("starred") is not None:
+                game = Game.objects.get(id=game_id)
+                if not request.user in game.wishlist_users.all():
+                    game.wishlist_users.add(request.user)
+                else:
+                    game.wishlist_users.remove(request.user)
+                game.save()
+
+        else:
+            return JsonResponse(
+                {"error": "Must be logged in to add a game to wishlist"}, status=401
+            )
 
     return JsonResponse(game.serialize(request.user))
 
@@ -120,9 +109,7 @@ def search(request, search_entry):
 
 def login_view(request):
     if request.method == "POST":
-        import pdb
 
-        pdb.set_trace()
         # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]

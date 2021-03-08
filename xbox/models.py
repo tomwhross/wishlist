@@ -79,19 +79,28 @@ class Game(models.Model):
 
         return 0
 
-    def is_wishlist_user(self, user):
+    def is_wishlist_user(self, user=None):
+        """
+        Check is the game is on a user's wishlist
+        """
+
+        if not user:
+            return False
 
         if user in self.wishlist_users.filter(id=user.id):
             return True
+
         return False
 
     def serialize(self, user=None):
+        """
+        Serialize the Game model for fetch response in js
+        """
 
         return {
             "id": self.id,
             "title": self.title,
             "url": self.url,
-            # "wishlist_users": [user.id for user in self.wishlist_users.all()],
             "is_wishlist_user": self.is_wishlist_user(user),
             "current_price": f"${str(self.current_price)}",
             "noted_sale": self.noted_sale,

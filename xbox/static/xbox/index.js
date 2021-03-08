@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('login').style.display = 'none';
   document.getElementById("add-game").style.display = 'none';
+  document.getElementById('message').style.display = 'none';
 
   // Use buttons to toggle between views
   document.querySelector('#sale-games-button').addEventListener('click', () => load_gamelist('sale-games'));
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function reset_gamelist_nav_buttons() {
+  document.getElementById('message').style.display = 'none';
   // reset all the nav buttons, make them unfilled
   const nav_buttons = document.querySelectorAll('.gamelist-nav-btn');
   
@@ -78,6 +80,14 @@ function view_games(games) {
   document.querySelector('#game-view').style.display = 'none';
   document.getElementById("add-game").style.display = 'none';
   document.querySelector('#gamelist-view-list').style.display = 'block'
+  const view_heading = document.getElementById('view-heading');
+
+  if (games.length === 0) {
+    console.log('Add games to wishlist');
+    message = document.getElementById('message');
+    message.innerHTML = 'Add some games to your wishlist!'
+    message.style.display = 'block';
+  }
 
   const gamelist_list = document.querySelector('#gamelist-view-list');
   gamelist_list.innerHTML = '';
@@ -91,6 +101,8 @@ function view_games(games) {
     div_row.style.border = 'thin solid #007bff';
     div_row.style.padding = '5px';
     div_row.style.margin = '5px';
+    
+    
 
     
 
@@ -103,7 +115,8 @@ function view_games(games) {
 
     const image_container = document.createElement('div');
     image_container.className = 'col-sm';
-    image_container.style.textAlign = 'center';
+    // image_container.style.textAlign = 'center';
+    image_container.style.textAlign = 'left';
 
     const wishlist_indicator_container = document.createElement('div');
     const wishlist_indicator = document.createElement('i');
@@ -135,13 +148,22 @@ function view_games(games) {
       })
       .then(response => response.json())
       .then(game => {
-        if (game.is_wishlist_user === true) {
-          wishlist_indicator.className = 'fas fa-star';
-          wishlist_indicator.style.color = '#007bff';
+        if (game.error) {
+          // load_gamelist('sale-games');
+          view_heading.style.display = 'none';
+          document.querySelector('#gamelist-view').style.display = 'none'; 
+          document.getElementById('login').style.display = 'block';
         }
         else {
-          wishlist_indicator.className = 'far fa-star';
-          wishlist_indicator.style.color = '#007bff';
+          console.log(game);
+          if (game.is_wishlist_user === true) {
+            wishlist_indicator.className = 'fas fa-star';
+            wishlist_indicator.style.color = '#007bff';
+          }
+          else {
+            wishlist_indicator.className = 'far fa-star';
+            wishlist_indicator.style.color = '#007bff';
+          }
         }
       });
     }
@@ -156,11 +178,14 @@ function view_games(games) {
 
     const title = document.createElement('div');
     title.className = 'col-sm';
-    title.style.textAlign = 'center';
+    // title.style.textAlign = 'center';
+    title.style.textAlign = 'left';
+    title.style.fontWeight = 'bold';
 
     const current_price = document.createElement('div');
     current_price.className = 'col-sm';
-    current_price.style.textAlign = 'center';
+    // current_price.style.textAlign = 'center';
+    current_price.style.textAlign = 'left';
 
     const sale = document.createElement('div');
     sale.className = 'col-sm';
@@ -184,13 +209,46 @@ function view_games(games) {
     regular_price.innerHTML = game.regular_price;
 
     // add the columns to the row
-    div_row.append(image_container);
+    // div_row.append(image_container);
   
-    div_row.append(title);
-    div_row.append(current_price);
-    div_row.append(sale);
-    div_row.append(regular_price)
-    div_row.append(wishlist_indicator_container)
+    // TODO: old divs, remove these
+    // div_row.append(title);
+    // div_row.append(current_price);
+    // div_row.append(sale);
+    // div_row.append(regular_price)
+    // div_row.append(wishlist_indicator_container)
+
+    const div_col_image = document.createElement('div');
+    div_col_image.className = 'col-2';
+    div_col_image.style.textAlign = 'left';
+    const div_col_info = document.createElement('div');
+    div_col_info.className = 'col-8';
+    const div_col_actions = document.createElement('div');
+    div_col_actions.className = 'col-2';
+    div_col_actions.style.textAlign = 'right';
+
+    const div_row_info_title = document.createElement('div');
+    div_row_info_title.className = 'row';
+    div_row_info_title.style.textAlign = 'left';
+    
+    const div_row_info_price = document.createElement('div');
+    div_row_info_price.className = 'row';
+    div_row_info_price.style.textAlign = 'left';
+
+    wishlist_indicator.style.textAlign = 'right';
+
+    div_col_image.append(image_container);
+    div_row_info_title.append(title);
+    div_row_info_price.append(current_price);
+    div_col_info.append(div_row_info_title);
+    div_col_info.append(div_row_info_price);
+    div_col_actions.append(wishlist_indicator_container);
+
+    div_row.append(div_col_image);
+    div_row.append(div_col_info);
+    div_row.append(div_col_actions);
+
+    console.log(div_row);
 
     // add the row to the list container
     gamelist_list.append(div_row);
@@ -201,10 +259,15 @@ function view_games(games) {
 function search() {
 
   // update the heading
-  document.getElementById('view-heading').innerHTML = 'Search Results';
+  const view_heading = document.getElementById('view-heading');
+  view_heading.innerHTML = 'Search Results';
+  view_heading.style.display = 'block';
 
   // get the search entry
   search_entry = document.querySelector('#search-entry').value;
+
+  // clear the search field
+  document.getElementById("search-entry").value = ""
 
   if (search_entry === '' || search_entry === undefined || search_entry === null) {
     load_gamelist('all-games');
@@ -233,7 +296,7 @@ function search() {
 function load_gamelist(gamelist) {
 
   // update the hading
-  view_heading = document.getElementById('view-heading');
+  const view_heading = document.getElementById('view-heading');
 
   if (gamelist == 'sale-games') {
     view_heading.innerHTML = 'Games on Sale';
@@ -247,6 +310,7 @@ function load_gamelist(gamelist) {
   else {
     view_heading.innerHTML = 'Xbox Deals';
   }
+  view_heading.style.display = 'block';
 
   // Show the mailbox and hide other views
   document.querySelector('#gamelist-view').style.display = 'block';
