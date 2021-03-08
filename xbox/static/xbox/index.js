@@ -196,6 +196,7 @@ function view_games(games) {
     regular_price.style.textAlign = 'center';
 
     linkable_elements = [title, image_container];
+    // linkable_elements = [div_col_image, div_col_info];
     linkable_elements.forEach(function(linkable_element) {
       linkable_element.onclick = function() {
         view_game(game.id);
@@ -236,6 +237,13 @@ function view_games(games) {
     div_row_info_price.style.textAlign = 'left';
 
     wishlist_indicator.style.textAlign = 'right';
+
+    linkable_elements = [div_col_image, div_col_info];
+    linkable_elements.forEach(function(linkable_element) {
+      linkable_element.onclick = function() {
+        view_game(game.id);
+      }
+    });
 
     div_col_image.append(image_container);
     div_row_info_title.append(title);
