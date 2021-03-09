@@ -23,6 +23,11 @@ def scrape_xbox_store_game_page(url):
     price = None
     noted_sale = False
     noted_sale_type = None
+    on_gamepass = False
+    days_left_on_sale = None
+    regular_price_available = False
+    regular_price = False
+    discount = None
 
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
@@ -45,6 +50,7 @@ def scrape_xbox_store_game_page(url):
             price = re.findall(r"\d+\.\d+", xbox_gold_sale_price_containers[0].text)[0]
         except IndexError:
             price = 0
+            on_gamepass = True
         else:
             noted_sale = True
             noted_sale_type = "Xbox Gold Sale"
@@ -56,6 +62,43 @@ def scrape_xbox_store_game_page(url):
         price = re.findall(r"\d+\.\d+", publisher_sale_price_containers[0].text)[0]
         noted_sale = True
         noted_sale_type = "Publisher Sale"
+
+    publisher_sale_regular_price_containers = soup.find_all(
+        "s", {"aria-hidden": "true"}
+    )
+    if publisher_sale_regular_price_containers:
+        try:
+            regular_price = re.findall(
+                r"\d+\.\d+", publisher_sale_regular_price_containers[0].text
+            )[0]
+            regular_price_available = True
+        except IndexError:
+            pass
+
+    discount_containers = soup.find_all("span", {"class": "sub"})
+    if discount_containers:
+        try:
+            discount_sub_container = re.findall(
+                r"[0-9]*\% off", discount_containers[0].text
+            )[0]
+
+            discount = re.findall(r"\d+", discount_sub_container)[0]
+        except IndexError:
+            pass
+
+    days_left_on_sale_containers = soup.find_all(
+        "span", {"class": "caption text-muted", "aria-live": "polite"}
+    )
+    if days_left_on_sale_containers:
+        try:
+
+            days_left_on_sale = re.findall(
+                r"\d+.days.left", str(days_left_on_sale_containers[0])
+            )
+            days_left_on_sale = re.findall(r"\d+", days_left_on_sale[0])[0]
+
+        except IndexError:
+            pass
 
     # if no Xbox Gold sale price was retrieved, get the current regular price
     if not price:
@@ -87,6 +130,11 @@ def scrape_xbox_store_game_page(url):
         "price": price or 0,
         "noted_sale": noted_sale,
         "noted_sale_type": noted_sale_type,
+        "on_gamepass": on_gamepass,
+        "regular_price": regular_price,
+        "regular_price_available": regular_price_available,
+        "discount": discount,
+        "days_left_on_sale": days_left_on_sale,
     }
 
 
@@ -105,16 +153,29 @@ def update_games_price(games):
     """
 
     for game in games:
-        xbox_store_game_details = scrape_xbox_store_game_page(game.url)
 
-        if xbox_store_game_details["price"] != str(game.current_price):
-            game_price_history = GamePriceHistory(game=game, price=game.current_price)
-            game.current_price = xbox_store_game_details["price"]
-            game.noted_sale = xbox_store_game_details["noted_sale"]
-            game.noted_sale_type = xbox_store_game_details["noted_sale_type"]
+        xbox_store_page = scrape_xbox_store_game_page(game.url)
+
+        if xbox_store_page["price"] != str(game.current_price):
+            game_price_history = GamePriceHistory(
+                game=game,
+                price=game.current_price,
+                noted_sale=game.noted_sale,
+                noted_sale_type=game.noted_sale_type,
+            )
 
             game_price_history.save()
-            game.save()
+
+        game.current_price = xbox_store_page["price"]
+        game.noted_sale = xbox_store_page["noted_sale"]
+        game.noted_sale_type = xbox_store_page["noted_sale_type"]
+        game.on_gamepass = xbox_store_page["on_gamepass"]
+        game.regular_price = xbox_store_page["regular_price"]
+        game.regular_price_available = xbox_store_page["regular_price_available"]
+        game.discount = xbox_store_page["discount"]
+        game.days_left_on_sale = xbox_store_page["days_left_on_sale"]
+
+        game.save()
 
     return games
 

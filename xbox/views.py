@@ -188,13 +188,19 @@ def add_game(request):
                 url=url,
                 title=xbox_store_page["title"],
                 current_price=xbox_store_page["price"],
+                regular_price=xbox_store_page["regular_price"],
+                regular_price_available=xbox_store_page["regular_price_available"],
+                discount=xbox_store_page["discount"],
+                days_left_on_sale=xbox_store_page["days_left_on_sale"],
                 noted_sale=xbox_store_page["noted_sale"],
                 noted_sale_type=xbox_store_page["noted_sale_type"],
+                on_gamepass=xbox_store_page["on_gamepass"],
             )
             game.save()  # setting id is required before adding ManyToMany relationships
 
             # TODO: might remove this, currently game added is auto added to user's wishlist
-            game.wishlist_users.add(request.user)
+            if request.user.is_authenticated:
+                game.wishlist_users.add(request.user)
 
             # add the game details from Giantbomb
             game_details = GameDetails(
@@ -211,6 +217,8 @@ def add_game(request):
 
             update_games_price(games)
 
-            _ = [game.wishlist_users.add(request.user) for game in games]
+            if request.user.is_authenticated:
+
+                _ = [game.wishlist_users.add(request.user) for game in games]
 
     return HttpResponseRedirect(reverse("index"))

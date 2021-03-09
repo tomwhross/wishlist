@@ -20,9 +20,18 @@ class Game(models.Model):
     title = models.TextField(max_length=500, blank=False)
     url = models.TextField(max_length=1000, blank=False)
     current_price = models.DecimalField(max_digits=6, decimal_places=2)
+    regular_price = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, default=None
+    )
+    regular_price_available = models.BooleanField(default=False)
     noted_sale = models.BooleanField(blank=False)
     noted_sale_type = models.TextField(
         max_length=255, blank=True, null=True, default=None
+    )
+    on_gamepass = models.BooleanField(blank=False)
+    days_left_on_sale = models.IntegerField(default=None, blank=True, null=True)
+    discount = models.DecimalField(
+        max_digits=6, decimal_places=2, default=None, null=True, blank=True
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -35,10 +44,13 @@ class Game(models.Model):
         return f"{self.title} is not on sale, at ${self.current_price}"
 
     @property
-    def regular_price(self):
+    def calculated_regular_price(self):
         """
         Returns the last recorded price for a game prior to the current price
         """
+
+        if self.regular_price_available:
+            return self.regular_price
 
         if not self.noted_sale:
             return self.current_price
@@ -50,9 +62,9 @@ class Game(models.Model):
         )
 
         if historical_regular_price:
-            return historical_regular_price.price
+            return float(historical_regular_price.price)
 
-        return "New entry on sale, unknown regular price"
+        return 0
 
     @property
     def lowest_price(self):
@@ -67,15 +79,18 @@ class Game(models.Model):
         if previous_low:
             return previous_low.price
 
-        return 0.00
+        return self.current_price
 
     @property
-    def discount(self):
+    def calculated_discount(self):
         """
         Return a discount percentage if there is a sale
         """
-        if self.noted_sale and not isinstance(self.regular_price, str):
-            return 1 - self.current_price / self.regular_price
+        if self.discount:
+            return float(self.discount)
+
+        if self.noted_sale and self.regular_price_available:
+            return float(1 - self.current_price / self.calculated_regular_price)
 
         return 0
 
@@ -102,13 +117,15 @@ class Game(models.Model):
             "title": self.title,
             "url": self.url,
             "is_wishlist_user": self.is_wishlist_user(user),
-            "current_price": f"${str(self.current_price)}",
+            "current_price": float(self.current_price),
             "noted_sale": self.noted_sale,
             "noted_sale_type": self.noted_sale_type,
+            "on_gamepass": self.on_gamepass,
             "created_at": self.created_at.strftime("%b %-d %Y, %-I:%M %p"),
-            "regular_price": self.regular_price,
-            "lowest_price": self.lowest_price,
-            "discount": self.discount,
+            "regular_price": float(self.calculated_regular_price),
+            "lowest_price": float(self.lowest_price),
+            "discount": self.calculated_discount,
+            "days_left_on_sale": self.days_left_on_sale,
             "image": self.details.first().image,
         }
 

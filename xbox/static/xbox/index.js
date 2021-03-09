@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function reset_gamelist_nav_buttons() {
+  // reset the nav buttons between views so the current one can be highlighted
   document.getElementById('message').style.display = 'none';
   // reset all the nav buttons, make them unfilled
   const nav_buttons = document.querySelectorAll('.gamelist-nav-btn');
@@ -28,6 +29,7 @@ function reset_gamelist_nav_buttons() {
 
 
 function view_game(game_id) {
+  // view for a individual game
 
   reset_gamelist_nav_buttons();
 
@@ -37,15 +39,15 @@ function view_game(game_id) {
   document.querySelector('#gamelist-view-list').style.display = 'none';
   document.querySelector('#game-view').style.display = 'block';
 
-  // create an element to display the email and blank it out
+  // create an element to display the game and blank it out
   const game_view = document.querySelector('#game-view'); 
   game_view.innerHTML = '';
   console.log('before the fetch');
 
+  // fetch a game from the server
   fetch(`/game/${game_id}`)
   .then(response => response.json())
   .then(game => {
-    console.log(game);
     view_heading.innerHTML = game.title;
     const image_container = document.createElement('div');
     const image = document.createElement('img');
@@ -54,7 +56,6 @@ function view_game(game_id) {
     const store_link_container = document.createElement('div');
     const store_link = document.createElement('a');
 
-
     image.src = game.image;
     image.className = 'img-fluid rounded';
     image.alt = game.title;
@@ -62,7 +63,6 @@ function view_game(game_id) {
     regular_price.innerHTML = game.regular_price;
     store_link.href = game.url;
     store_link.innerHTML = `Store page for ${game.title}`
-    console.log('settlings the elements up');
 
     image_container.append(image);
     store_link_container.append(store_link);
@@ -76,25 +76,38 @@ function view_game(game_id) {
 }
 
 
-function view_games(games) {
+function view_games(games, gamelist) {
 
   document.querySelector('#login').style.display = 'none';
   document.querySelector('#game-view').style.display = 'none';
   document.getElementById("add-game").style.display = 'none';
   document.querySelector('#gamelist-view-list').style.display = 'block'
+
   const view_heading = document.getElementById('view-heading');
 
+  // if not games are passed, display a message
+  // default should indicate no games on user's wishlist
   if (games.length === 0) {
-    console.log('Add games to wishlist');
     message = document.getElementById('message');
-    message.innerHTML = 'Add some games to your wishlist!'
-    message.style.display = 'block';
+
+    if (gamelist === 'wishlist-games') {
+      message.innerHTML = 'Add some games to your wishlist!'
+    }
+    else if (gamelist === 'sale-games') {
+      message.innerHTML = 'There are no games currently on sale!'
+    }
+    else {
+      message.innerHTML = 'Something went wrong, try reloading the page'
+    }
+
+    message.style.display = 'none';
   }
 
+  // get the games view and blank it out
   const gamelist_list = document.querySelector('#gamelist-view-list');
   gamelist_list.innerHTML = '';
 
-  // for each of the emails
+  // for each of the games
   games.forEach(function(game) {
 
     // create a row div and set some style properties
@@ -103,10 +116,6 @@ function view_games(games) {
     div_row.style.border = 'thin solid #007bff';
     div_row.style.padding = '5px';
     div_row.style.margin = '5px';
-    
-    
-
-    
 
     // read emails should have a grey background
     // if (email.read === true) {
@@ -151,7 +160,8 @@ function view_games(games) {
       .then(response => response.json())
       .then(game => {
         if (game.error) {
-          // load_gamelist('sale-games');
+          // assuming that an error returned here means that
+          // the user is not logged in, so hide everything and show the login view
           view_heading.style.display = 'none';
           document.querySelector('#gamelist-view').style.display = 'none'; 
           document.getElementById('login').style.display = 'block';
@@ -279,6 +289,7 @@ function search() {
   // clear the search field
   document.getElementById("search-entry").value = ""
 
+  // if there is no search entry on submit, show all games
   if (search_entry === '' || search_entry === undefined || search_entry === null) {
     load_gamelist('all-games');
   }
@@ -291,8 +302,11 @@ function search() {
         view_games(games);
       }
       else {
+        const message = document.getElementById('message');
+        message.innerHTML = 'There are no games matching that title, try a new search or add a URL from the Xbox Store (Canada)';
         document.querySelector('#gamelist-view').style.display = 'none';
         document.getElementById('add-game').style.display = 'block';
+        message.style.display = 'block';
       }
     });
   }
@@ -345,8 +359,7 @@ function load_gamelist(gamelist) {
       document.getElementById('login').style.display = 'block';
     }
     else {
-      console.log(games);
-      view_games(games)
+      view_games(games, gamelist)
     }
     
   });
