@@ -16,6 +16,34 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+function display_view(view) {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById("add-game").style.display = 'none';
+  document.getElementById('message').style.display = 'none';
+  document.getElementById('gamelist-view').style.display = 'none';
+  document.getElementById('game-view').style.display = 'none';
+
+  switch(view) {
+    case 'login':
+      document.getElementById('login').style.display = 'block';
+      break;
+    case 'add-game':
+      document.getElementById('add-game').style.display = 'block';
+      break;
+    case 'message':
+      document.getElementById('message').style.display = 'block';
+      break;
+    case 'gamelist-view':
+      document.getElementById('gamelist-view').style.display = 'block';
+      break;
+    case 'game-view':
+      document.getElementById('game-view').style.display = 'block';
+      break;
+  } 
+
+}
+
+
 function reset_gamelist_nav_buttons() {
   // reset the nav buttons between views so the current one can be highlighted
   document.getElementById('message').style.display = 'none';
@@ -36,8 +64,7 @@ function view_game(game_id) {
   view_heading = document.getElementById('view-heading');
   
   // show the game and hide the other views
-  document.querySelector('#gamelist-view-list').style.display = 'none';
-  document.querySelector('#game-view').style.display = 'block';
+  display_view('game-view');
 
   // create an element to display the game and blank it out
   const game_view = document.querySelector('#game-view'); 
@@ -59,6 +86,7 @@ function view_game(game_id) {
     image.src = game.image;
     image.className = 'img-fluid rounded';
     image.alt = game.title;
+    
     current_price.innerHTML = game.current_price;
     regular_price.innerHTML = game.regular_price;
     store_link.href = game.url;
@@ -76,75 +104,189 @@ function view_game(game_id) {
 }
 
 
-function view_games(games, gamelist) {
+function display_message(gamelist) {
+  message = document.getElementById('message');
 
-  document.querySelector('#login').style.display = 'none';
-  document.querySelector('#game-view').style.display = 'none';
-  document.getElementById("add-game").style.display = 'none';
-  document.querySelector('#gamelist-view-list').style.display = 'block'
-
-  const view_heading = document.getElementById('view-heading');
-
-  // if not games are passed, display a message
-  // default should indicate no games on user's wishlist
-  if (games.length === 0) {
-    message = document.getElementById('message');
-
-    if (gamelist === 'wishlist-games') {
-      message.innerHTML = 'Add some games to your wishlist!'
-    }
-    else if (gamelist === 'sale-games') {
-      message.innerHTML = 'There are no games currently on sale!'
-    }
-    else {
-      message.innerHTML = 'Something went wrong, try reloading the page'
-    }
-
-    message.style.display = 'none';
+  if (gamelist === 'wishlist-games') {
+    message.innerHTML = 'Add some games to your wishlist!'
+  }
+  else if (gamelist === 'sale-games') {
+    message.innerHTML = 'There are no games currently on sale!'
+  }
+  else {
+    message.innerHTML = 'Something went wrong, try reloading the page'
   }
 
-  // get the games view and blank it out
-  const gamelist_list = document.querySelector('#gamelist-view-list');
-  gamelist_list.innerHTML = '';
+  message.style.display = 'block';
+}
 
-  // for each of the games
+
+function view_games(games, gamelist) {
+  // reset the page
+  display_view('gamelist-view');
+
+  // get the element that will contain everything
+  gamelist_view = document.getElementById('gamelist-view');
+  gamelist_view.innerHTML = '';
+
+  // create the rows-cols container
+  rows_cols = document.createElement('div');
+  rows_cols.className = 'row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-4';
+
+  // if there are no games to display show a message
+  if (games.length === 0) {
+    display_message(gamelist);
+  }
+  else {
+    document.getElementById('message').style.display = 'none';
+  }
+
   games.forEach(function(game) {
+    const col = document.createElement('div');
+    col.className = 'col';
 
-    // create a row div and set some style properties
-    const div_row = document.createElement('div');
-    div_row.className = 'row gamelist-game-row';
-    div_row.style.border = 'thin solid #007bff';
-    div_row.style.padding = '5px';
-    div_row.style.margin = '5px';
+    const card = document.createElement('div');
+    card.className = 'card h-100 d-flex flex-column';
+    card.style.overflow = 'hidden';
 
-    // read emails should have a grey background
-    // if (email.read === true) {
-    //   div_row.style.backgroundColor = '#CECECE';
-    // }
+    const card_cover_div = document.createElement('div');
+    card_cover_div.style.overflow = 'hidden';
+    const card_cover_image = document.createElement('img');
+    card_cover_image.className = 'card-img-top card-img-cover';
+    card_cover_image.src = game.image;
+    card_cover_image.style.filter = 'blur(1px)';
+    card_cover_image.style.margin = '-5px 0px 0px';
+    card_cover_image.style.overflow = 'hidden';
+    card_cover_image.alt = `Cover image for ${game.title}`;
 
-    // create columns in the row for sender, subject, and sent time
+    const card_body = document.createElement('div');
+    card_body.className = 'card-body px-2 d-flex flex-column';
 
-    const image_container = document.createElement('div');
-    image_container.className = 'col-sm';
-    // image_container.style.textAlign = 'center';
-    image_container.style.textAlign = 'left';
+    const card_title = document.createElement('h6');
+    card_title.className = 'card-title';
+    card_title.style.minHeight = '73px';
+    card_title.innerHTML = game.title;
+    card_body.append(card_title);
 
-    const wishlist_indicator_container = document.createElement('div');
-    const wishlist_indicator = document.createElement('i');
-    console.log(game.is_wishlist_user);
-    if (game.is_wishlist_user === true) {
-      wishlist_indicator.className = 'fas fa-star';
-      wishlist_indicator.style.color = '#007bff';
+    const card_line = document.createElement('hr');
+    card_line.className = 'mx-0 text-muted';
+
+    
+    // card_body.append(card_line);
+    // TODO: figure out why this isn't displaying on sale games?
+
+    const discount_badge_parapgrah = document.createElement('p');
+    discount_badge_parapgrah.style.minHeight = '21px';
+    if (game.noted_sale && game.discount) {
+      console.log(`generating badge for ${game.title}`);
+      const discount_badge = document.createElement('span');
+      discount_badge.className = 'badge bg-danger spaced-badge';
+      discount_badge.innerHTML = `${game.discount}% OFF`;
+
+
+      discount_badge_parapgrah.append(discount_badge);
+      
+    }
+    card_body.append(discount_badge_parapgrah);
+
+    card_price_data = document.createElement('p');
+    card_price_data.className = 'card-text';
+
+    if (game.noted_sale && game.regular_price) {
+      const regular_price = document.createElement('span');
+      regular_price.className = 'text-muted card-space sale-regular-price';
+      regular_price.innerHTML = `$${game.regular_price}`;
+
+      const sale_price = document.createElement('span');
+      sale_price.className = 'card-space sale-price';
+      sale_price.innerHTML = `$${game.current_price}`;
+
+      card_price_data.append(regular_price);
+      card_price_data.append(sale_price);
     }
     else {
-      wishlist_indicator.className = 'far fa-star';
-      wishlist_indicator.style.color = '#007bff';
-    }
-    
-    wishlist_indicator_container.append(wishlist_indicator);
+      const current_price = document.createElement('span');
+      current_price.className = 'card-space sale-price';
+      current_price.innerHTML = `$${game.current_price}`;
 
-    wishlist_indicator_container.onclick = function() {
-      // star_game(game.id);
+      card_price_data.append(current_price);
+    }
+
+    card_body.append(card_price_data);
+
+    
+
+    console.log(`${game.title} on gamepass value: ${game.on_gamepass}`);
+    const badges_paragraph = document.createElement('p');
+    badges_paragraph.style.minHeight = '21px';
+    if (game.noted_sale_type === 'Xbox Gold Sale' || game.on_gamepass) {
+      
+      badges_paragraph.className = 'card-text';
+
+      if (game.noted_sale_type === 'Xbox Gold Sale' || game.on_gamepass) {
+        const gold_sale_badge = document.createElement('span');
+        gold_sale_badge.className = 'badge bg-warning text-dark card-badge-space';
+        gold_sale_badge.innerHTML = 'GOLD SALE';
+        gold_sale_badge.style.marginRight = '10px';
+        badges_paragraph.append(gold_sale_badge);
+      }
+
+      if (game.on_gamepass) {
+        const gamepass_badge = document.createElement('span');
+        gamepass_badge.className = 'badge bg-success card-badge-space';
+        gamepass_badge.innerHTML = 'GAME PASS';
+        badges_paragraph.append(gamepass_badge);
+      }
+      
+    }
+    card_body.append(badges_paragraph);
+
+    
+
+    if (game.days_left_on_sale) {
+      // <p><span class="card-text"><small class="text-muted"><b>14</b> days left on sale</small></span></p>
+
+      const days_sale_left_paragraph = document.createElement('p');
+      days_sale_left_paragraph.className = 'mt-auto align-bottom';
+      const days_sale_left_span = document.createElement('span');
+      days_sale_left_span.className = 'card-text';
+      const days_sale_left_small = document.createElement('small');
+      days_sale_left_small.className = 'text-muted';
+      days_sale_left_small.innerHTML = `<b>${game.days_left_on_sale}</b> days left on sale`;
+
+      days_sale_left_span.append(days_sale_left_small);
+      days_sale_left_paragraph.append(days_sale_left_span);
+      card_body.append(days_sale_left_paragraph);
+    }
+
+    const wishlist_cta_div = document.createElement('div');
+    wishlist_cta_div.className = 'd-grid gap-2 col-12 mx-auto mt-auto align-bottom';
+    // wishlist_cta_div.style.textAlign = 'right';
+    // wishlist_cta_div.style.position = 'absolute';
+
+    const wishlist_cta_button = document.createElement('button');
+    wishlist_cta_button.className = 'btn-sm btn-primary';
+    wishlist_cta_button.style.fontSize = '13px';
+    
+
+    const wishlist_cta_text_span = document.createElement('span');
+    const wishlist_cta_icon_span = document.createElement('span');
+    const wishlist_cta_icon = document.createElement('i');
+    wishlist_cta_icon.className = 'fas fa-star';
+    wishlist_cta_icon.style.marginRight = '8px';
+    
+    
+
+    if (game.is_wishlist_user) {
+      wishlist_cta_icon.style.color = 'orange';
+      wishlist_cta_text_span.innerHTML = 'Remove from wishlist';
+    }
+    else {
+      wishlist_cta_icon.style.color = 'white';
+      wishlist_cta_text_span.innerHTML = 'Add to wishlist';
+    }
+    console.log(`on click event for ${game.title}`);
+    wishlist_cta_div.onclick = function() {
       fetch(`/game/${game.id}`, {
         method: 'PUT',
         mode: 'same-origin',
@@ -167,112 +309,65 @@ function view_games(games, gamelist) {
           document.getElementById('login').style.display = 'block';
         }
         else {
-          console.log(game);
+          console.log(`click ${game.title}`);
           if (game.is_wishlist_user === true) {
-            wishlist_indicator.className = 'fas fa-star';
-            wishlist_indicator.style.color = '#007bff';
+            wishlist_cta_icon.style.color = 'orange';
+            wishlist_cta_text_span.innerHTML = 'Remove from wishlist';
           }
           else {
-            wishlist_indicator.className = 'far fa-star';
-            wishlist_indicator.style.color = '#007bff';
+            wishlist_cta_icon.style.color = 'white';
+            wishlist_cta_text_span.innerHTML = 'Add to wishlist';
           }
         }
       });
     }
 
-    const image = document.createElement('img');
-    image.className = 'img-fluid rounded';
-    // image.className = 'img-thumbnail rounded';
-    console.log(game.image);
-    image.src = game.image;
+    linkable_elements = [card_cover_image, card_title, card_price_data];
 
-    image_container.append(image);
-
-    const title = document.createElement('div');
-    title.className = 'col-sm';
-    // title.style.textAlign = 'center';
-    title.style.textAlign = 'left';
-    title.style.fontWeight = 'bold';
-
-    const current_price = document.createElement('div');
-    current_price.className = 'col-sm';
-    // current_price.style.textAlign = 'center';
-    current_price.style.textAlign = 'left';
-
-    const sale = document.createElement('div');
-    sale.className = 'col-sm';
-    sale.style.textAlign = 'center';
-
-    const regular_price = document.createElement('div');
-    regular_price.className = 'col-sm';
-    regular_price.style.textAlign = 'center';
-
-    // linkable_elements = [title, image_container];
-    // linkable_elements = [div_col_image, div_col_info];
-    // linkable_elements.forEach(function(linkable_element) {
-    //   linkable_element.onclick = function() {
-    //     view_game(game.id);
-    //   }
-    // });
-
-    // add the content to the divs
-    title.innerHTML = game.title;
-    current_price.innerHTML = game.current_price;
-    sale.innerHTML = game.noted_sale_type
-    regular_price.innerHTML = game.regular_price;
-
-    // add the columns to the row
-    // div_row.append(image_container);
-  
-    // TODO: old divs, remove these
-    // div_row.append(title);
-    // div_row.append(current_price);
-    // div_row.append(sale);
-    // div_row.append(regular_price)
-    // div_row.append(wishlist_indicator_container)
-
-    const div_col_image = document.createElement('div');
-    div_col_image.className = 'col-2';
-    div_col_image.style.textAlign = 'left';
-    const div_col_info = document.createElement('div');
-    div_col_info.className = 'col-8';
-    const div_col_actions = document.createElement('div');
-    div_col_actions.className = 'col-2';
-    div_col_actions.style.textAlign = 'right';
-
-    const div_row_info_title = document.createElement('div');
-    div_row_info_title.className = 'row';
-    div_row_info_title.style.textAlign = 'left';
-    
-    const div_row_info_price = document.createElement('div');
-    div_row_info_price.className = 'row';
-    div_row_info_price.style.textAlign = 'left';
-
-    wishlist_indicator.style.textAlign = 'right';
-
-    linkable_elements = [div_col_image, div_col_info];
     linkable_elements.forEach(function(linkable_element) {
       linkable_element.onclick = function() {
         view_game(game.id);
       }
     });
 
-    div_col_image.append(image_container);
-    div_row_info_title.append(title);
-    div_row_info_price.append(current_price);
-    div_col_info.append(div_row_info_title);
-    div_col_info.append(div_row_info_price);
-    div_col_actions.append(wishlist_indicator_container);
+    card.onmouseover = function() {
+      card_title.style.color = '#007bff';
+      card_cover_image.style.filter = 'blur(0px)';
+      // card_cover_image.style.margin = '0px 0px 0px 0px';
+      // card.style.boxShadow = '0px 0px 8px 3px rgba(0,0,0,0.25)';
+      card.style.boxShadow = '0px 2px 13px 5px rgba(0,0,0,0.75)';
+      card.style.cursor = 'pointer';
+    }
+    card.onmouseout = function() {
+      card_title.style.color = '#000000';
+      card_cover_image.style.filter = 'blur(1px)';
+      // card_cover_image.style.margin = '1px 5px 5px 1px';
+      // card.style.boxShadow = '0px 0px 0px 0px rgba(0,0,0,0)';
+      card.style.boxShadow = 'none';
+      card.style.cursor = 'default';
+    }
+    
+    
+    wishlist_cta_icon_span.append(wishlist_cta_icon);
+    wishlist_cta_button.append(wishlist_cta_icon_span);
+    wishlist_cta_button.append(wishlist_cta_text_span);
+    wishlist_cta_div.append(wishlist_cta_button);
+    card_body.append(wishlist_cta_div);
+    card_cover_div.append(card_cover_image);
+    card.append(card_cover_div);
+    card.append(card_body);
 
-    div_row.append(div_col_image);
-    div_row.append(div_col_info);
-    div_row.append(div_col_actions);
+    col.append(card);
 
-    console.log(div_row);
-
-    // add the row to the list container
-    gamelist_list.append(div_row);
+    rows_cols.append(col);
   });
+
+  // append the rows-cols to the main container div
+  gamelist_view.append(rows_cols);
+
+  
+
+
 }
 
 
@@ -296,7 +391,8 @@ function search() {
   else {
     // get the games with titles matching the search entry
     fetch(`/search/${search_entry}`)
-    .then(response => response.json())
+    .then(response => 
+      response.json())
     .then(games => {
       if (games.length > 0) {
         view_games(games);
@@ -355,8 +451,7 @@ function load_gamelist(gamelist) {
     if (games.error) {
       // load_gamelist('sale-games');
       view_heading.style.display = 'none';
-      document.querySelector('#gamelist-view').style.display = 'none'; 
-      document.getElementById('login').style.display = 'block';
+      display_view('login'); 
     }
     else {
       view_games(games, gamelist)

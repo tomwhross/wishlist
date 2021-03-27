@@ -3,7 +3,7 @@
 
 {% block body %}
 
-    <div id="nav-buttons" style="padding-left: 10px; padding-right: 10px; margin-top: 5px;">
+    <div id="nav-buttons" style="padding-left: 10px; padding-right: 10px;">
         <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="sale-games-button">Sale</button>
         <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="wishlist-games-button">Wishlist</button>
         <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="all-games-button">All</button>
@@ -21,12 +21,7 @@
 
     <h2 id="view-heading" style="margin: 5px; padding: 5px;">Games on Sale</h2>
 
-    {% if message %}
-        <div>{{ message }}</div>
-    {% endif %}
-    <div id="result-message"></div>
-
-    <div id="message" class="alert alert-primary" role="alert"></div>
+    <div id="message" class="alert alert-primary" role="alert" style="margin: 10px;"></div>
 
     <div id="login">
         <form action="{% url 'login' %}" method="post">
@@ -66,16 +61,9 @@
     </div>
 
     <div id="gamelist-view">
-        <div id="gamelist-header"></div>
-        {% comment %} <div class="row" style="padding: 5px; margin: 5px;">
-            <div class="col-sm" style="text-align: center;"><h5>Title</h5></div>
-            <div class="col-sm" style="text-align: center;"><h5>Current Price</h5></div>
-            <div class="col-sm" style="text-align: center;"><h5>Sale</h5></div>
-            <div class="col-sm" style="text-align: center;"><h5>Regular Price</h5></div>
-        </div> {% endcomment %}
-        <div id="gamelist-view-list" class="container">
-        </div>
+        {% comment %} <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xxl-5 g-4"></div> {% endcomment %}
     </div>
+
 
     <div id="game-view"></div
 

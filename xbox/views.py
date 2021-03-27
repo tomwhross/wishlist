@@ -222,3 +222,24 @@ def add_game(request):
                 _ = [game.wishlist_users.add(request.user) for game in games]
 
     return HttpResponseRedirect(reverse("index"))
+
+
+def test(request):
+    return render(
+        request,
+        "xbox/test.html",
+    )
+
+
+def test2(request):
+    return render(
+        request,
+        "xbox/test2.html",
+    )
+
+
+def test3(request):
+    return render(
+        request,
+        "xbox/test3.html",
+    )

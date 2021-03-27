@@ -87,10 +87,10 @@ class Game(models.Model):
         Return a discount percentage if there is a sale
         """
         if self.discount:
-            return float(self.discount)
+            return int(self.discount)
 
         if self.noted_sale and self.regular_price_available:
-            return float(1 - self.current_price / self.calculated_regular_price)
+            return int((1 - self.current_price / self.calculated_regular_price) * 100)
 
         return 0
 

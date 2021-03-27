@@ -1,7 +1,9 @@
-/* body {
-    padding: 10px;
-} */
-
+.body {
+    padding-top: 1vh;
+    margin: 0 auto;
+    display: flex;
+    /* justify-content: center; */
+}
 textarea {
     min-height: 150px;
     max-height: 150px;
@@ -9,11 +11,6 @@ textarea {
     min-width: 48vw;
 }
 
-#post-view
-{
-    display: block;
-    text-align: center;
-}
 form
 {
     display: inline-block;
@@ -22,14 +19,57 @@ form
     text-align: left;
 }
 
-.post-container {
-    max-width: 50vw;
+#gamelist-view {
+    margin-left: 50px;
+    margin-right: 50px;
+    margin-top: 30px;
+    font-size: 14px;
+}
+
+.card-img-cover {
+    object-fit: cover;
+    max-height: 110px;
+}
+
+.card-body {
+    background-color: #f0f0f0;
+}
+
+.card-title {
+    font-weight: bold;
+}
+
+.card-space {
+    margin-right: 5px;
+}
+
+.card-badge-space {
+    margin-right: 3px;
+}
+
+.sale-regular-price {
+    text-decoration: line-through;
+}
+
+.sale-price {
+    font-weight: bold;
+}
+
+/* 
+
+.game-list-game-container {
+    max-width: 90vw;
     margin-top: 10px;
     padding-top: 5px;
     padding-bottom: 5px;
 }
 
-.post-row {
+.gamelist-game-row {
+    max-width: 400px;
+    min-width: 400px;
+    max-height: 400px;
+    min-height: 400px;
     padding-left: 10px;
     padding-right: 10px;
-}
+} 
+*/
