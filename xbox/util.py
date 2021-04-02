@@ -12,6 +12,208 @@ from bs4 import BeautifulSoup
 from .models import Game, GamePriceHistory
 
 
+class MissingEnvironmentVariable(Exception):
+    pass
+
+
+def get_game_page(url):
+    """
+    Get the HTML for a given URL, where the URL is a game's page in the Xbox
+    Store
+    """
+    response = requests.get(url)
+    game_page = BeautifulSoup(response.content, "html.parser")
+
+    return game_page
+
+
+def get_game_page_title(game_page):
+    """
+    Extracts the game's title from an Xbox Store game page
+    """
+
+    # get the game title from the HTML title tag
+    #   and strip unncessary characters
+    title = game_page.title.text.replace("Buy ", "").replace(
+        " - Microsoft Store en-CA", ""
+    )
+
+    return title
+
+
+def is_on_gamepass(game_page):
+    """
+    Check if a game is on Game Pass given its game page from the store
+    """
+
+    game_pass_ultimate_label = "Included with Xbox Game Pass Ultimate"
+    if game_pass_ultimate_label in game_page.text:
+        return True
+
+    return False
+
+
+def is_gold_sale(game_page):
+    """
+    Check if a sale if for Gold subscribers only
+    """
+
+    gold_labels = ["with Xbox Live Gold", "Go Gold"]
+    for gold_label in gold_labels:
+        if gold_label not in game_page.text:
+            return False
+
+    return True
+
+
+def get_publisher_sale_price(game_page):
+    """
+    Check is sale is publisher sale and if it is get and return the sale price
+    """
+
+    publisher_sale_price_containers = game_page.find_all(
+        "span", {"class": "price-disclaimer"}
+    )
+    if publisher_sale_price_containers:
+        return re.findall(r"\d+\.\d+", publisher_sale_price_containers[0].text)[0]
+
+    return None
+
+
+def get_publisher_sale_regular_price(game_page):
+    """
+    Check if sale is publisher sale and if it is get and return the regular price
+    """
+
+    publisher_sale_regular_price_containers = game_page.find_all(
+        "s", {"aria-hidden": "true"}
+    )
+
+    if publisher_sale_regular_price_containers:
+        try:
+
+            return re.findall(
+                r"\d+\.\d+", publisher_sale_regular_price_containers[0].text
+            )[0]
+        except IndexError:
+
+            return None
+
+
+def get_gold_sale_price(game_page):
+    """
+    Check if a sale is a Gold sale and if it is get and return the current sale price
+    """
+
+    # this is an Xbox Gold sale price retreival
+    xbox_gold_sale_price_containers = game_page.find_all(
+        "div", {"class": "remediation-cta-label"}
+    )
+
+    if not xbox_gold_sale_price_containers:
+        return None
+
+    try:
+        return re.findall(r"\d+\.\d+", xbox_gold_sale_price_containers[0].text)[0]
+    except IndexError:
+        return None
+
+
+def get_discount(game_page):
+    """
+    Returns a discount percentage if available
+    """
+
+    discount_containers = game_page.find_all("span", {"class": "sub"})
+    if discount_containers:
+        try:
+            discount_sub_container = re.findall(
+                r"[0-9]*\% off", discount_containers[0].text
+            )[0]
+
+            return re.findall(r"\d+", discount_sub_container)[0]
+        except IndexError:
+
+            return None
+
+    return None
+
+
+def get_days_left_on_sale(game_page):
+    """
+    Returns the number of days left on sale if available
+    """
+
+    days_left_on_sale_containers = game_page.find_all(
+        "span", {"class": "caption text-muted", "aria-live": "polite"}
+    )
+
+    if days_left_on_sale_containers:
+        try:
+            days_left_on_sale = re.findall(
+                r"\d+.days?.left", str(days_left_on_sale_containers[0])
+            )
+
+            return re.findall(r"\d+", days_left_on_sale[0])[0]
+
+        except IndexError:
+
+            return None
+
+    return None
+
+
+def get_regular_price(game_page):
+    """
+    Get and return the regular price of a game
+    """
+
+    regular_price = None
+    price_element_id_prefix = "ProductPrice_productPrice_PriceContainer-"
+
+    # the price container element changes throughout the day
+    # currently, only the number suffix changes
+    # have seen as high as 11, but trying 50
+    for i in range(0, 50):
+        price_element_id = f"{price_element_id_prefix}{i}"
+        price_element = game_page.find(id=price_element_id)
+
+        try:
+            price_element_text = price_element.text
+        except AttributeError:
+            continue
+        else:
+            # once the price text has been located, parse out the decimal price
+            regular_price = price_element_text.replace("CAD $", "").replace(
+                "+Offers in-app purchases", ""
+            )
+            break
+
+    return regular_price
+
+
+def get_game_prices(game_page):
+    """
+    Scrape the page to get the current price and the regular price if the
+    current price is a sale price
+    """
+
+    publisher_sale_price = get_publisher_sale_price(game_page)
+    publisher_sale_regular_price = get_publisher_sale_regular_price(game_page)
+
+    if publisher_sale_price and publisher_sale_regular_price:
+        return publisher_sale_price, publisher_sale_regular_price
+
+    xbox_gold_sale_price = get_gold_sale_price(game_page)
+    regular_price = get_regular_price(game_page)
+
+    if xbox_gold_sale_price and regular_price:
+        return xbox_gold_sale_price, regular_price
+
+    # game is not on sale
+    return regular_price, regular_price
+
+
 def scrape_xbox_store_game_page(url):
     """
     Scrape the Xbox Store game page for a given url
@@ -20,125 +222,36 @@ def scrape_xbox_store_game_page(url):
 
     # scrape the game's Xbox Store page
     # and parse the game page title
-    price = None
     noted_sale = False
     noted_sale_type = None
-    on_gamepass = False
-    days_left_on_sale = None
-    regular_price_available = False
-    regular_price = False
-    discount = None
 
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
-    title = (
-        soup.title.text.replace("Buy ", "")
-        .replace(" - Microsoft Store en-CA", "")
-        .replace("™", "")  # TODO: remove this?
-        .replace("\u2122", "")
-    )
+    game_page = get_game_page(url)
 
-    # there are different ways the Xbox Store page will store regular and sale
-    # price data
+    gold_sale = is_gold_sale(game_page)
+    if gold_sale:
+        noted_sale_type = "Xbox Gold Sale"
+        noted_sale = True
 
-    # this is an Xbox Gold sale price retreival
-    xbox_gold_sale_price_containers = soup.find_all(
-        "div", {"class": "remediation-cta-label"}
-    )
-    if xbox_gold_sale_price_containers:
-        try:
-            price = re.findall(r"\d+\.\d+", xbox_gold_sale_price_containers[0].text)[0]
-        except IndexError:
-            price = 0
-            on_gamepass = True
-        else:
-            noted_sale = True
-            noted_sale_type = "Xbox Gold Sale"
-
-    publisher_sale_price_containers = soup.find_all(
-        "span", {"class": "price-disclaimer"}
-    )
-    if publisher_sale_price_containers:
-        price = re.findall(r"\d+\.\d+", publisher_sale_price_containers[0].text)[0]
+    price, regular_price = get_game_prices(game_page)
+    if price != regular_price and not noted_sale:
         noted_sale = True
         noted_sale_type = "Publisher Sale"
 
-    publisher_sale_regular_price_containers = soup.find_all(
-        "s", {"aria-hidden": "true"}
-    )
-    if publisher_sale_regular_price_containers:
-        try:
-            regular_price = re.findall(
-                r"\d+\.\d+", publisher_sale_regular_price_containers[0].text
-            )[0]
-            regular_price_available = True
-        except IndexError:
-            pass
-
-    discount_containers = soup.find_all("span", {"class": "sub"})
-    if discount_containers:
-        try:
-            discount_sub_container = re.findall(
-                r"[0-9]*\% off", discount_containers[0].text
-            )[0]
-
-            discount = re.findall(r"\d+", discount_sub_container)[0]
-        except IndexError:
-            pass
-
-    days_left_on_sale_containers = soup.find_all(
-        "span", {"class": "caption text-muted", "aria-live": "polite"}
-    )
-    if days_left_on_sale_containers:
-        try:
-
-            days_left_on_sale = re.findall(
-                r"\d+.days.left", str(days_left_on_sale_containers[0])
-            )
-            days_left_on_sale = re.findall(r"\d+", days_left_on_sale[0])[0]
-
-        except IndexError:
-            pass
-
-    # if no Xbox Gold sale price was retrieved, get the current regular price
-    if not price:
-
-        # this is the prefix of current element that contains the current price
-        # subject to change without warning!
-        price_element_id_prefix = "ProductPrice_productPrice_PriceContainer-"
-
-        # the price container element changes throughout the day
-        # currently, only the number suffix changes
-        # have seen as high as 11, but trying 50
-        for i in range(0, 50):
-            price_element_id = f"{price_element_id_prefix}{i}"
-            price_element = soup.find(id=price_element_id)
-
-            try:
-                price_element_text = price_element.text
-            except AttributeError:
-                continue
-            else:
-                # once the price text has been located, parse out the decimal price
-                price = price_element_text.replace("CAD $", "").replace(
-                    "+Offers in-app purchases", ""
-                )
-                break
-
     return {
-        "title": title,
+        "title": get_game_page_title(game_page),
         "price": price or 0,
         "noted_sale": noted_sale,
         "noted_sale_type": noted_sale_type,
-        "on_gamepass": on_gamepass,
+        "on_gamepass": is_on_gamepass(game_page),
         "regular_price": regular_price,
-        "regular_price_available": regular_price_available,
-        "discount": discount,
-        "days_left_on_sale": days_left_on_sale,
+        "regular_price_available": bool(regular_price),
+        "discount": get_discount(game_page),
+        "days_left_on_sale": get_days_left_on_sale(game_page),
     }
 
 
 def check_if_game_on_wishlist(games, user):
+
     for game in games:
         if user in game.wishlist_users:
             game.on_wishlist = True
@@ -187,7 +300,14 @@ def get_giantbomb_api_key():
     E.g. export GIANTBOMB_API_KEY=<my_secret_key>
     """
 
-    return os.getenv("GIANTBOMB_API_KEY")
+    giant_bomb_key = os.getenv("GIANTBOMB_API_KEY")
+
+    if not giant_bomb_key:
+        raise MissingEnvironmentVariable(
+            "Environment variable `GIANTBOMB_API_KEY` not found"
+        )
+
+    return giant_bomb_key
 
 
 def get_giantbomb_game_details(title):
@@ -215,4 +335,5 @@ def get_giantbomb_game_details(title):
         headers=headers,
     )
 
+    # arbitrarily picking the first result
     return json.loads(giantbomb_response.content)["results"][0]

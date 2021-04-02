@@ -13,7 +13,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Game, GameDetails, User
 from .util import (
-    check_if_game_on_wishlist,
     get_giantbomb_game_details,
     scrape_xbox_store_game_page,
     update_games_price,
@@ -64,15 +63,18 @@ def view_gamelist(request, gamelist):
                 {"error": "Must be logged in to view wishlist"}, status=401
             )
         games = Game.objects.filter(wishlist_users=request.user).order_by(
-            "-current_price"
+            "current_price"
         )
     elif gamelist == "sale-games":
-        games = Game.objects.filter(noted_sale=True).order_by("-current_price")
+        games = Game.objects.filter(noted_sale=True).order_by("current_price")
     else:
         # all games
         games = Game.objects.all()
 
-    return JsonResponse([game.serialize(request.user) for game in games], safe=False)
+    return JsonResponse(
+        [game.serialize(request.user) for game in games.order_by("current_price")],
+        safe=False,
+    )
 
 
 def view_game(request, game_id):
@@ -222,24 +224,3 @@ def add_game(request):
                 _ = [game.wishlist_users.add(request.user) for game in games]
 
     return HttpResponseRedirect(reverse("index"))
-
-
-def test(request):
-    return render(
-        request,
-        "xbox/test.html",
-    )
-
-
-def test2(request):
-    return render(
-        request,
-        "xbox/test2.html",
-    )
-
-
-def test3(request):
-    return render(
-        request,
-        "xbox/test3.html",
-    )
