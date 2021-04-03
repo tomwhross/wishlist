@@ -61,13 +61,12 @@ function view_game(game_id) {
   // view for a individual game
 
   reset_gamelist_nav_buttons();
-
-  view_heading = document.getElementById('view-heading');
+  // view_heading = document.getElementById('view-heading');
   
   // show the game and hide the other views
   display_view('game-view');
 
-  // create an element to display the game and blank it out
+  // locate the game view and blank it out
   const game_view = document.querySelector('#game-view'); 
   game_view.innerHTML = '';
 
@@ -75,30 +74,77 @@ function view_game(game_id) {
   fetch(`/game/${game_id}`)
   .then(response => response.json())
   .then(game => {
-    view_heading.innerHTML = game.title;
-    const image_container = document.createElement('div');
-    const image = document.createElement('img');
-    const current_price = document.createElement('div');
-    const regular_price = document.createElement('div');
-    const store_link_container = document.createElement('div');
-    const store_link = document.createElement('a');
 
-    image.src = game.image;
-    image.className = 'img-fluid rounded';
-    image.alt = game.title;
+    const game_view_card = document.createElement('div');
+    game_view_card.className = 'card d-flex flex-column game-view-card';
+
+    const game_view_card_row = document.createElement('div');
+    game_view_card_row.className = 'row g-0';
+
+    const game_view_card_image_container = document.createElement('div');
+    game_view_card_image_container.className = 'col-3 game-view-card-image-container';
+
+    const game_view_card_image = document.createElement('img');
+    game_view_card_image.className = 'card-lg-img-cover img-responsive';
+    game_view_card_image.src = game.image;
+
+    const game_view_card_body_container = document.createElement('div');
+    game_view_card_body_container.className = 'col';
+
+    const game_view_card_body = document.createElement('div');
+    game_view_card_body.className = 'card-body';
+
+    const game_card_title = generate_game_card_title(game);
+    const game_card_discount = generate_game_card_discount(game);
+    const prices = generate_game_card_prices(game);
+    const badges = generate_game_card_badges(game);
+    const days_left = generate_game_card_days_left(game);
+    const wishlist_cta = generate_game_card_wishlist_cta(game, false);
+
+    game_view_card_body.append(game_card_title);
+    game_view_card_body.append(game_card_discount);
+    game_view_card_body.append(prices);
+    game_view_card_body.append(badges);
+    game_view_card_body.append(days_left);
+    game_view_card_body.append(wishlist_cta);
+
+    game_view_card_body_container.append(game_view_card_body);
+
+    game_view_card_image_container.append(game_view_card_image);
+
+    game_view_card_row.append(game_view_card_image_container);
+    game_view_card_row.append(game_view_card_body_container);
+
+    game_view_card.append(game_view_card_row);
+
+    game_view.append(game_view_card);
+
+
+
+    // view_heading.innerHTML = game.title;
+    // const image_container = document.createElement('div');
+    // const image = document.createElement('img');
+    // const current_price = document.createElement('div');
+    // const regular_price = document.createElement('div');
+    // const store_link_container = document.createElement('div');
+    // const store_link = document.createElement('a');
+
+    // image.src = game.image;
+    // image.className = 'img-fluid rounded';
+    // image.alt = game.title;
     
-    current_price.innerHTML = game.current_price;
-    regular_price.innerHTML = game.regular_price;
-    store_link.href = game.url;
-    store_link.innerHTML = `Store page for ${game.title}`
+    // current_price.innerHTML = game.current_price;
+    // regular_price.innerHTML = game.regular_price;
+    // store_link.href = game.url;
+    // store_link.innerHTML = `Store page for ${game.title}`
 
-    image_container.append(image);
-    store_link_container.append(store_link);
+    // image_container.append(image);
+    // store_link_container.append(store_link);
 
-    game_view.append(image_container);
-    game_view.append(current_price);
-    game_view.append(regular_price);
-    game_view.append(store_link_container);
+    // game_view.append(image_container);
+    // game_view.append(current_price);
+    // game_view.append(regular_price);
+    // game_view.append(store_link_container);
 
   });
 }
@@ -247,12 +293,17 @@ function generate_game_card_days_left(game) {
 }
 
 
-function generate_game_card_wishlist_cta(game) {
+function generate_game_card_wishlist_cta(game, list = true) {
   const wishlist_cta_div = document.createElement('div');
   wishlist_cta_div.className = 'd-grid gap-2 col-12 mx-auto mt-auto align-bottom';
 
   const wishlist_cta_button = document.createElement('button');
   wishlist_cta_button.className = 'btn-sm btn-primary';
+
+  if (!list) {
+    wishlist_cta_button.classList.add('game-view-card-cta');
+  }
+
   wishlist_cta_button.style.fontSize = '13px';
   
   const wishlist_cta_text_span = document.createElement('span');

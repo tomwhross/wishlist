@@ -31,7 +31,41 @@ form
     max-height: 110px;
 }
 
-.card-body {
+.centered-card {
+    position: fixed;
+    left: 25%;
+}
+
+.card-lg-img-cover {
+    object-fit: cover;
+    max-height: 340px;
+    min-width: 272px;
+}
+
+#game-view {
+    padding-left: 50px; 
+    padding-right: 50px;
+}
+
+.game-view-card {
+    margin-top: 50px;
+    max-width: 1085px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.game-view-card-image-container {
+    overflow: hidden;
+    min-width: 272px;
+}
+
+.game-view-card-cta {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+}
+
+.card {
     background-color: #f0f0f0;
 }
 
