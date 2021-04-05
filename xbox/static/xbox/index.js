@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('login').style.display = 'none';
   document.getElementById("add-game").style.display = 'none';
   document.getElementById('message').style.display = 'none';
+  document.getElementById('spinner').style.display = 'none';
 
   // Use buttons to toggle between views
   document.querySelector('#sale-games-button').addEventListener('click', () => load_gamelist('sale-games'));
@@ -10,6 +11,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // add the search
   document.querySelector('#search-form').addEventListener('submit', () => search());
+
+  // add new game
+  document.querySelector('#add-game-form').onsubmit = () => {
+    // add the game
+    add_game();
+
+    // stop the form from submitting, suppress the default behaviour to avoid
+    // any funky stuff 
+    return false;
+  }
 
   // by default load the sale games view
   load_gamelist('sale-games');
@@ -20,10 +31,11 @@ function display_view(view) {
   // change the view displayed
 
   document.getElementById('login').style.display = 'none';
-  document.getElementById("add-game").style.display = 'none';
+  document.getElementById('add-game').style.display = 'none';
   document.getElementById('message').style.display = 'none';
   document.getElementById('gamelist-view').style.display = 'none';
   document.getElementById('game-view').style.display = 'none';
+  document.getElementById('spinner').style.display = 'none';
 
   switch(view) {
     case 'login':
@@ -41,7 +53,41 @@ function display_view(view) {
     case 'game-view':
       document.getElementById('game-view').style.display = 'block';
       break;
+    case 'spinner':
+      document.getElementById('spinner').style.display = 'block';
+      break; 
   } 
+}
+
+
+function add_game() {
+
+  console.log(document.querySelector('#game-url').value);
+  fetch('/add_game', {
+
+    method: 'POST',
+    mode: 'same-origin',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': get_cookie('csrftoken') 
+    },
+    body: JSON.stringify({
+      game_url: document.querySelector('#game-url').value,
+      fun: true
+    })
+  })
+  .then(display_view('spinner'))
+  .then(response => response.json())
+  .then(result => {
+    if (result.error) {
+      display_view('gamelist-view');
+      display_message(gamelist='', message_text=result.error);
+    }
+    else {
+      view_game(result.game_id);
+    }
+  })
 }
 
 
@@ -59,6 +105,7 @@ function reset_gamelist_nav_buttons() {
 
 function view_game(game_id) {
   // view for a individual game
+  console.log('getting called');
 
   reset_gamelist_nav_buttons();
   // view_heading = document.getElementById('view-heading');
@@ -70,12 +117,13 @@ function view_game(game_id) {
   const game_view = document.querySelector('#game-view'); 
   game_view.innerHTML = '';
 
+  const game_view_card = document.createElement('div');
   // fetch a game from the server
   fetch(`/game/${game_id}`)
   .then(response => response.json())
   .then(game => {
 
-    const game_view_card = document.createElement('div');
+    
     game_view_card.className = 'card d-flex flex-column game-view-card';
 
     const game_view_card_row = document.createElement('div');
@@ -94,66 +142,126 @@ function view_game(game_id) {
     const game_view_card_body = document.createElement('div');
     game_view_card_body.className = 'card-body';
 
-    const game_card_title = generate_game_card_title(game);
+    const game_card_title = generate_game_card_title(game, list=false);
     const game_card_discount = generate_game_card_discount(game);
     const prices = generate_game_card_prices(game);
     const badges = generate_game_card_badges(game);
     const days_left = generate_game_card_days_left(game);
     const wishlist_cta = generate_game_card_wishlist_cta(game, false);
+    const lowest_price = generate_game_card_lowest_price(game);
 
+    const store_button = document.createElement('button');
+    store_button.innerHTML = 'Visit store page';
+    store_button.className = 'btn-sm btn-success store-button';
+    store_button.onclick = function() {
+      window.open(game.url, "_blank");
+    }
+
+
+    game_view_card_body.append(store_button);
     game_view_card_body.append(game_card_title);
     game_view_card_body.append(game_card_discount);
     game_view_card_body.append(prices);
     game_view_card_body.append(badges);
     game_view_card_body.append(days_left);
+    game_view_card_body.append(lowest_price);
     game_view_card_body.append(wishlist_cta);
-
     game_view_card_body_container.append(game_view_card_body);
-
     game_view_card_image_container.append(game_view_card_image);
-
     game_view_card_row.append(game_view_card_image_container);
     game_view_card_row.append(game_view_card_body_container);
-
     game_view_card.append(game_view_card_row);
-
-    game_view.append(game_view_card);
-
-
-
-    // view_heading.innerHTML = game.title;
-    // const image_container = document.createElement('div');
-    // const image = document.createElement('img');
-    // const current_price = document.createElement('div');
-    // const regular_price = document.createElement('div');
-    // const store_link_container = document.createElement('div');
-    // const store_link = document.createElement('a');
-
-    // image.src = game.image;
-    // image.className = 'img-fluid rounded';
-    // image.alt = game.title;
-    
-    // current_price.innerHTML = game.current_price;
-    // regular_price.innerHTML = game.regular_price;
-    // store_link.href = game.url;
-    // store_link.innerHTML = `Store page for ${game.title}`
-
-    // image_container.append(image);
-    // store_link_container.append(store_link);
-
-    // game_view.append(image_container);
-    // game_view.append(current_price);
-    // game_view.append(regular_price);
-    // game_view.append(store_link_container);
+    // game_view.append(game_view_card);
 
   });
+
+  const game_price_history_container = document.createElement('div');
+  game_price_history_container.style.marginRight = 'auto';
+  game_price_history_container.style.marginLeft = 'auto';
+  game_price_history_container.style.marginTop = '40px';
+  game_price_history_container.style.maxWidth = '1060px';
+
+  game_price_history_container_title = document.createElement('h5');
+  game_price_history_container_title.style.fontWeight = 'bold';
+
+  game_price_history_container_title.innerHTML = 'Previous Price History';
+
+
+  const game_price_history_table = document.createElement('table');
+  game_price_history_table.className = 'table';
+
+  const table_header = document.createElement('thead');
+  const table_header_row = document.createElement('tr');
+  const table_header_price = document.createElement('th');
+  table_header_price.innerHTML = 'Price';
+  const table_header_sale = document.createElement('th');
+  table_header_sale.innerHTML = 'Sale';
+  const table_header_date = document.createElement('th');
+  table_header_date.innerHTML = 'Date Changed';
+
+  table_header_row.append(table_header_price);
+  table_header_row.append(table_header_sale);
+  table_header_row.append(table_header_date);
+
+  table_header.append(table_header_row);
+
+  game_price_history_table.append(table_header);
+
+  const table_body = document.createElement('tbody');
+
+  // fetch a game from the server
+  fetch(`/prices/${game_id}`)
+  .then(response => response.json())
+  .then(prices => {
+    prices.forEach(function(price) {
+
+      console.log(price.price);
+      if (price.price) {
+        price_history = true;
+        console.log('set');
+      }
+
+      const table_row = document.createElement('tr');
+
+      const table_row_price = document.createElement('td');
+      table_row_price.innerHTML = `$${price.price}`;
+
+      const table_row_sale = document.createElement('td');
+      table_row_sale.innerHTML = `${price.noted_sale_type}`;
+
+      const table_row_date = document.createElement('td');
+      table_row_date.innerHTML = `${price.created_at}`;
+
+
+      table_row.append(table_row_price);
+      table_row.append(table_row_sale);
+      table_row.append(table_row_date);
+
+      table_body.append(table_row);
+    });
+
+    game_price_history_table.append(table_body);
+    
+  });
+  game_price_history_container.append(game_price_history_container_title);
+  game_price_history_container.append(game_price_history_table);
+  game_view.append(game_view_card);
+  game_view.append(game_price_history_container);
+  
 }
 
 
-function display_message(gamelist) {
+function display_message(gamelist='', message_text='') {
   message = document.getElementById('message');
 
-  if (gamelist === 'wishlist-games') {
+  console.log(`message: ${message_text}`);
+  console.log(`gamelist: ${gamelist}`);
+
+  if (gamelist === '' && message_text !== '') {
+    message.className = 'alert alert-danger';
+    message.innerHTML = message_text;
+  }
+  else if (gamelist === 'wishlist-games') {
     message.innerHTML = 'Add some games to your wishlist!'
   }
   else if (gamelist === 'sale-games') {
@@ -182,10 +290,14 @@ function generate_game_card_image(game) {
 }
 
 
-function generate_game_card_title(game) {
+function generate_game_card_title(game, list=true) {
   // generate the title element for the game card
 
-  const card_title = document.createElement('h6');
+  var card_title = document.createElement('h6');
+  if (!list) {
+    card_title = document.createElement('h5');
+  }
+  
   card_title.className = 'card-title';
   card_title.style.minHeight = '73px';
   card_title.innerHTML = game.title;
@@ -293,7 +405,31 @@ function generate_game_card_days_left(game) {
 }
 
 
+function generate_game_card_lowest_price(game) {
+  // generate warning badge for number of days game is left on sale
+
+  const lowest_price_paragraph = document.createElement('p');
+  lowest_price_paragraph.style.minHeight = '22px';
+
+  if (game.lowest_price) {
+
+    lowest_price_paragraph.className = 'mt-auto align-bottom';
+    const lowest_price_span = document.createElement('span');
+    lowest_price_span.className = 'card-text';
+    const lowest_price_small = document.createElement('small');
+    lowest_price_small.className = 'text-muted';
+    lowest_price_small.innerHTML = `Lowest tracked price: <b>$${game.lowest_price}</b>`;
+
+    lowest_price_span.append(lowest_price_small);
+    lowest_price_paragraph.append(lowest_price_span);
+  }
+
+  return lowest_price_paragraph;
+}
+
+
 function generate_game_card_wishlist_cta(game, list = true) {
+
   const wishlist_cta_div = document.createElement('div');
   wishlist_cta_div.className = 'd-grid gap-2 col-12 mx-auto mt-auto align-bottom';
 
@@ -302,6 +438,7 @@ function generate_game_card_wishlist_cta(game, list = true) {
 
   if (!list) {
     wishlist_cta_button.classList.add('game-view-card-cta');
+    wishlist_cta_button.style.minWidth = '310px';
   }
 
   wishlist_cta_button.style.fontSize = '13px';
@@ -338,8 +475,10 @@ function generate_game_card_wishlist_cta(game, list = true) {
       if (game.error) {
         // assuming that an error returned here means that
         // the user is not logged in, so hide everything and show the login view
+        const view_heading = document.getElementById('view-heading');
         view_heading.style.display = 'none';
-        document.querySelector('#gamelist-view').style.display = 'none'; 
+        document.getElementById('gamelist-view').style.display = 'none'; 
+        document.getElementById('game-view').style.display = 'none';
         document.getElementById('login').style.display = 'block';
       }
       else {
@@ -498,9 +637,11 @@ function search() {
       else {
         const message = document.getElementById('message');
         message.innerHTML = 'There are no games matching that title, try a new search or add a URL from the Xbox Store (Canada)';
-        document.querySelector('#gamelist-view').style.display = 'none';
-        document.getElementById('add-game').style.display = 'block';
+        display_view('add-game');
+        // document.querySelector('#gamelist-view').style.display = 'none';
+        // document.getElementById('add-game').style.display = 'block';
         message.style.display = 'block';
+        
       }
     });
   }
@@ -548,6 +689,7 @@ function load_gamelist(gamelist) {
   .then(games => {
     if (games.error) {
       // load_gamelist('sale-games');
+      const view_heading = document.getElementById('view-heading');
       view_heading.style.display = 'none';
       display_view('login'); 
     }

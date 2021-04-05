@@ -65,6 +65,13 @@ form
     right: 16px;
 }
 
+.store-button {
+    min-width: 310px;
+    position: absolute;
+    bottom: 62px;
+    right: 16px;
+}
+
 .card {
     background-color: #f0f0f0;
 }

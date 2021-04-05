@@ -9,11 +9,23 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
+from .constants import SEED_URLS
 from .models import Game, GamePriceHistory
 
 
 class MissingEnvironmentVariable(Exception):
-    pass
+    """
+    Exception for missing env var
+    """
+
+
+def seed_games():
+    """
+    Seeds the database with an initial set of games
+    """
+
+    for url in SEED_URLS:
+        scrape_xbox_store_game_page(url)
 
 
 def get_game_page(url):
@@ -21,7 +33,11 @@ def get_game_page(url):
     Get the HTML for a given URL, where the URL is a game's page in the Xbox
     Store
     """
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except:
+        return None
+
     game_page = BeautifulSoup(response.content, "html.parser")
 
     return game_page
@@ -226,6 +242,8 @@ def scrape_xbox_store_game_page(url):
     noted_sale_type = None
 
     game_page = get_game_page(url)
+    if not game_page:
+        return None
 
     gold_sale = is_gold_sale(game_page)
     if gold_sale:

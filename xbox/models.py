@@ -1,11 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-# from django.db.models import Max
-
 
 class User(AbstractUser):
-    pass
+    """
+    Standard built-in user
+    """
 
 
 class Game(models.Model):
@@ -15,7 +15,6 @@ class Game(models.Model):
     can exist without being on a wishlist
     """
 
-    # user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="games")
     wishlist_users = models.ManyToManyField("User", blank=True, related_name="wishlist")
     title = models.TextField(max_length=500, blank=False)
     url = models.TextField(max_length=1000, blank=False)
@@ -76,7 +75,7 @@ class Game(models.Model):
             GamePriceHistory.objects.filter(game=self).order_by("price").first()
         )
 
-        if previous_low:
+        if previous_low and previous_low.price < self.current_price:
             return previous_low.price
 
         return self.current_price
@@ -126,7 +125,7 @@ class Game(models.Model):
             "lowest_price": self.lowest_price,
             "discount": self.calculated_discount,
             "days_left_on_sale": self.days_left_on_sale,
-            "image": self.details.first().image,
+            "image": self.details.first().image,  # pylint: disable=no-member; # noqa
         }
 
 
@@ -166,3 +165,15 @@ class GamePriceHistory(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+    def serialize(self):
+        """
+        Serialize the GamePriceHistory model for fetch response in js
+        """
+
+        return {
+            "price": str(self.price),
+            "noted_sale": self.noted_sale or "-",
+            "noted_sale_type": self.noted_sale_type or "-",
+            "created_at": self.created_at.strftime("%b %-d %Y, %-I:%M %p"),
+        }

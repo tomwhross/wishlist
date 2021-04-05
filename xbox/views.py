@@ -11,7 +11,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Game, GameDetails, User
+from .models import Game, GameDetails, GamePriceHistory, User
 from .util import (
     get_giantbomb_game_details,
     scrape_xbox_store_game_page,
@@ -20,33 +20,9 @@ from .util import (
 
 
 def index(request):
-    if request.user.is_authenticated:
-
-        # TODO: this should be a post request
-        search_entry = request.GET.get("q", None)
-
-        if search_entry:
-            games = Game.objects.filter(title__contains=search_entry).order_by(
-                "-current_price"
-            )
-
-            return render(
-                request,
-                "xbox/index.html",
-                {"wishlist": games},
-            )
-
-        return render(
-            request,
-            "xbox/index.html",
-            {
-                "wishlist": Game.objects.filter(wishlist_users=request.user).order_by(
-                    "-current_price"
-                )
-            },
-        )
-
-    # return HttpResponseRedirect(reverse("login"))
+    """
+    Render index
+    """
 
     return render(
         request,
@@ -54,7 +30,6 @@ def index(request):
     )
 
 
-# @login_required
 def view_gamelist(request, gamelist):
 
     if gamelist == "wishlist-games":
@@ -78,11 +53,17 @@ def view_gamelist(request, gamelist):
 
 
 def view_game(request, game_id):
+    """
+    Returns a serialized Game object on GET
+
+    If request is PUT, adds or removes from the user's wishlist
+    """
 
     game = Game.objects.get(id=game_id)
 
     # Add or remove a game from a wishlist
     if request.method == "PUT":
+
         if request.user.is_authenticated:
 
             data = json.loads(request.body)
@@ -102,7 +83,30 @@ def view_game(request, game_id):
     return JsonResponse(game.serialize(request.user))
 
 
+def view_game_price_history(request, game_id):
+    """
+    Return a json response of a game's price history
+    """
+
+    game = Game.objects.get(id=game_id)
+    game_price_history = GamePriceHistory.objects.filter(game=game)
+
+    if game_price_history:
+        game_price_history = game_price_history.order_by("-created_at")
+
+        return JsonResponse(
+            [entry.serialize() for entry in game_price_history], safe=False
+        )
+
+    return JsonResponse([], safe=False)
+
+
 def search(request, search_entry):
+    """
+    Search for a game based on the title
+
+    Returns a serialized queryset
+    """
 
     games = Game.objects.filter(title__contains=search_entry)
 
@@ -171,7 +175,15 @@ def add_game(request):
 
     if request.method == "POST":
 
-        url = request.POST["game-url"]
+        # url = request.POST["game_url"]
+        url = json.loads(request.body).get("game_url", None)
+
+        if not url:
+            return JsonResponse(
+                {"error": "Could not add the game, check the URL and try again"},
+                status=400,
+            )
+
         games = Game.objects.filter(url=url)
 
         # if the game does not exist and return the game
@@ -180,12 +192,21 @@ def add_game(request):
         if not games:
             xbox_store_page = scrape_xbox_store_game_page(url)
 
+            # if the page couldn't be retrieved, return error message
+            if not xbox_store_page:
+
+                return JsonResponse(
+                    {
+                        "error": "Not a valid Xbox Store page URL, check the URL and try again"
+                    },
+                    status=400,
+                )
+
             giantbomb_game_details = get_giantbomb_game_details(
                 xbox_store_page["title"]
             )
 
             # create the game
-
             game = Game(
                 url=url,
                 title=xbox_store_page["title"],
@@ -199,10 +220,6 @@ def add_game(request):
                 on_gamepass=xbox_store_page["on_gamepass"],
             )
             game.save()  # setting id is required before adding ManyToMany relationships
-
-            # TODO: might remove this, currently game added is auto added to user's wishlist
-            if request.user.is_authenticated:
-                game.wishlist_users.add(request.user)
 
             # add the game details from Giantbomb
             game_details = GameDetails(
@@ -223,4 +240,4 @@ def add_game(request):
 
                 _ = [game.wishlist_users.add(request.user) for game in games]
 
-    return HttpResponseRedirect(reverse("index"))
+    return JsonResponse({"game_id": game.id})

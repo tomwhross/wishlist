@@ -7,8 +7,6 @@
         <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="sale-games-button">Sale</button>
         <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="wishlist-games-button">Wishlist</button>
         <button class="btn btn-sm btn-outline-primary gamelist-nav-btn" id="all-games-button">All</button>
-        {% comment %} <button class="btn btn-sm btn-outline-primary" id="archived">Archived</button> {% endcomment %}
-        {% comment %} <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a> {% endcomment %}
         <span class="contentcontainer med left" style="float: right">
             <form id="search-form" onsubmit="return false;">
                 <div class="form-group" style="display: inline-block;">
@@ -21,9 +19,9 @@
 
     <h2 id="view-heading" style="margin: 5px; padding: 5px;">Games on Sale</h2>
 
-    <div id="message" class="alert alert-primary" role="alert" style="margin: 10px;"></div>
+    <div id="message" class="alert alert-primary" role="alert" style="max-width: 800px; margin: auto; margin-top: 10px; margin-bottom: 20px;"></div>
 
-    <div id="login">
+    <div id="login" style="display: inline; max-width: 300px; margin-left: auto; margin-right: auto; margin-top: 80px;">
         <form action="{% url 'login' %}" method="post">
             {% csrf_token %}
             <div class="form-group">
@@ -32,13 +30,14 @@
             <div class="form-group">
                 <input class="form-control" type="password" name="password" placeholder="Password" autocomplete="current-password">
             </div>
-            <input class="btn btn-primary" type="submit" value="Login">
+            <input class="btn btn-primary" type="submit" value="Login" style="margin-top: 10px;">
         </form>
-
-        Don't have an account? <a href="{% url 'register' %}">Register here.</a>
+        <div style="margin-top: 5px;">
+            Don't have an account? <a href="{% url 'register' %}">Register here.</a>
+        </div>
     </div>
 
-    <div id="add-game" class="container border border-secondary rounded-sm">
+    {% comment %} <div id="add-game" class="container border border-secondary rounded-sm">
         <div class="row">
             <div class="col-sm" style="margin: 20px;">
                 <div id="game-form-view">
@@ -58,14 +57,39 @@
                 </div>
             </div>
         </div>
+    </div> {% endcomment %}
+
+    <div id="add-game" class="container" style="max-width: 800px;">
+        <div class="row">
+            <div class="col-sm">
+                <div id="game-form-view" style="max-width: 660px; margin-left: auto; margin-right: auto; margin-top: 10px;">
+                    <form id="add-game-form">
+                        <div class="form-group">
+                            <textarea autofocus class="form-control" id="game-url" name="game-url" required="required" maxlength="1000" placeholder="Xbox Store game page URL"></textarea>
+                        </div>
+                        <span class="align-bottom">
+                            <div class="row algin-bottom">
+                                <div class="col">
+                                    <input type="submit" class="btn btn-primary" value="Add Game" style="margin-top: 10px; float: right;" />
+                                </div>
+                            </div>
+                        </span>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="gamelist-view">
-        {% comment %} <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xxl-5 g-4"></div> {% endcomment %}
-    </div>
-
+    <div id="gamelist-view"></div>
 
     <div id="game-view"></div>
+
+    <div id="spinner" style="max-width: 400px; margin-left: auto; margin-right: auto; margin-top: 50px;">
+        <div class="d-flex align-items-center">
+            <strong>Adding game from the Xbox Store...</strong>
+            <div id="spinner-widget" class="spinner-border mx-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </div>
 
 {% endblock body %}
 
