@@ -13,7 +13,11 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Game, GameDetails, GamePriceHistory, User
 from .util import (
+    InvalidDomain,
+    NoPrice,
     get_giantbomb_game_details,
+    get_total_pages,
+    paginate_list,
     scrape_xbox_store_game_page,
     update_games_price,
 )
@@ -30,7 +34,14 @@ def index(request):
     )
 
 
-def view_gamelist(request, gamelist):
+def view_gamelist(request, gamelist, page_number=None):
+    """
+    View for a list of games, e.g. games on sale, games on wishlist
+    Handles pagination
+    """
+
+    if not page_number:
+        page_number = 1
 
     if gamelist == "wishlist-games":
         if not request.user.is_authenticated:
@@ -46,10 +57,35 @@ def view_gamelist(request, gamelist):
         # all games
         games = Game.objects.all()
 
-    return JsonResponse(
-        [game.serialize(request.user) for game in games.order_by("current_price")],
-        safe=False,
-    )
+    games = [game.serialize(request.user) for game in games.order_by("current_price")]
+
+    total_pages = get_total_pages(games)
+
+    games = paginate_list(games, page_number)
+
+    has_next_page = False
+    next_page = None
+    if page_number < total_pages:
+        has_next_page = True
+        next_page = page_number + 1
+
+    has_previous_page = False
+    previous_page = None
+    if page_number > 1:
+        has_previous_page = True
+        previous_page = page_number - 1
+
+    response = {
+        "total_pages": total_pages,
+        "current_page": page_number,
+        "next_page": next_page,
+        "has_next_page": has_next_page,
+        "has_previous_page": has_previous_page,
+        "previous_page": previous_page or None,
+        "games": games,
+    }
+
+    return JsonResponse(response)
 
 
 def view_game(request, game_id):
@@ -114,25 +150,52 @@ def search(request, search_entry):
 
 
 def login_view(request):
+    # import pdb
+
+    # pdb.set_trace()
     if request.method == "POST":
 
         # Attempt to sign user in
-        username = request.POST["username"]
-        password = request.POST["password"]
+        # username = request.POST["username"]
+        username = json.loads(request.body).get("username", None)
+        # password = request.POST["password"]
+        password = json.loads(request.body).get("password", None)
         user = authenticate(request, username=username, password=password)
 
         # Check if authentication successful
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect(reverse("index"))
-        else:
-            return render(
-                request,
-                "xbox/login.html",
-                {"message": "Invalid username and/or password."},
+            return JsonResponse(
+                {"user": {"is_authenticated": True}},
+                status=200,
             )
-    else:
-        return render(request, "xbox/login.html")
+
+    return JsonResponse(
+        {"error": "There was a problem logging in"},
+        status=400,
+    )
+
+
+# def login_view(request):
+#     if request.method == "POST":
+
+#         # Attempt to sign user in
+#         username = request.POST["username"]
+#         password = request.POST["password"]
+#         user = authenticate(request, username=username, password=password)
+
+#         # Check if authentication successful
+#         if user is not None:
+#             login(request, user)
+#             return HttpResponseRedirect(reverse("index"))
+#         else:
+#             return render(
+#                 request,
+#                 "xbox/login.html",
+#                 {"message": "Invalid username and/or password."},
+#             )
+#     else:
+#         return render(request, "xbox/login.html")
 
 
 def logout_view(request):
@@ -142,15 +205,14 @@ def logout_view(request):
 
 def register(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-
-        # Ensure password matches confirmation
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
+        username = json.loads(request.body).get("username", None)
+        email = json.loads(request.body).get("email", None)
+        password = json.loads(request.body).get("password", None)
+        confirmation = json.loads(request.body).get("confirmation", None)
         if password != confirmation:
-            return render(
-                request, "xbox/register.html", {"message": "Passwords must match."}
+            return JsonResponse(
+                {"error": "Passwords must match"},
+                status=400,
             )
 
         # Attempt to create new user
@@ -158,13 +220,15 @@ def register(request):
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
-            return render(
-                request, "xbox/register.html", {"message": "Username already taken."}
+            return JsonResponse(
+                {"error": "Username already taken"},
+                status=400,
             )
         login(request, user)
-        return HttpResponseRedirect(reverse("index"))
-    else:
-        return render(request, "xbox/register.html")
+    return JsonResponse(
+        {"user": {"is_authenticated": True}},
+        status=200,
+    )
 
 
 def add_game(request):
@@ -175,7 +239,6 @@ def add_game(request):
 
     if request.method == "POST":
 
-        # url = request.POST["game_url"]
         url = json.loads(request.body).get("game_url", None)
 
         if not url:
@@ -190,15 +253,18 @@ def add_game(request):
         # otherwise return the game
 
         if not games:
-            xbox_store_page = scrape_xbox_store_game_page(url)
-
-            # if the page couldn't be retrieved, return error message
-            if not xbox_store_page:
-
+            try:
+                xbox_store_page = scrape_xbox_store_game_page(url)
+            except InvalidDomain:
                 return JsonResponse(
                     {
                         "error": "Not a valid Xbox Store page URL, check the URL and try again"
                     },
+                    status=400,
+                )
+            except NoPrice:
+                return JsonResponse(
+                    {"error": "Unable to retreive a price for the game"},
                     status=400,
                 )
 

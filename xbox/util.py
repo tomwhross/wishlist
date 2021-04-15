@@ -19,6 +19,18 @@ class MissingEnvironmentVariable(Exception):
     """
 
 
+class InvalidDomain(Exception):
+    """
+    Exception for non-Xbox game store pages
+    """
+
+
+class NoPrice(Exception):
+    """
+    Exception if the scraper is unable to retreive a price
+    """
+
+
 def seed_games():
     """
     Seeds the database with an initial set of games
@@ -33,9 +45,10 @@ def get_game_page(url):
     Get the HTML for a given URL, where the URL is a game's page in the Xbox
     Store
     """
+
     try:
         response = requests.get(url)
-    except:
+    except (requests.exceptions.MissingSchema, ConnectionError):
         return None
 
     game_page = BeautifulSoup(response.content, "html.parser")
@@ -63,7 +76,9 @@ def is_on_gamepass(game_page):
     """
 
     game_pass_ultimate_label = "Included with Xbox Game Pass Ultimate"
-    if game_pass_ultimate_label in game_page.text:
+    ea_play_label = "Included with EA Play"
+
+    if game_pass_ultimate_label in game_page.text or ea_play_label in game_page.text:
         return True
 
     return False
@@ -236,6 +251,9 @@ def scrape_xbox_store_game_page(url):
     returns a game title and current price
     """
 
+    if "microsoft.com/en-ca/" not in url.lower():
+        raise InvalidDomain
+
     # scrape the game's Xbox Store page
     # and parse the game page title
     noted_sale = False
@@ -245,12 +263,16 @@ def scrape_xbox_store_game_page(url):
     if not game_page:
         return None
 
+    price, regular_price = get_game_prices(game_page)
+
+    if price == 0 and regular_price == 0:
+        raise NoPrice
+
     gold_sale = is_gold_sale(game_page)
     if gold_sale:
         noted_sale_type = "Xbox Gold Sale"
         noted_sale = True
 
-    price, regular_price = get_game_prices(game_page)
     if price != regular_price and not noted_sale:
         noted_sale = True
         noted_sale_type = "Publisher Sale"
@@ -355,3 +377,33 @@ def get_giantbomb_game_details(title):
 
     # arbitrarily picking the first result
     return json.loads(giantbomb_response.content)["results"][0]
+
+
+def paginate_list(items, page_number):
+    """
+    returns a sliced list of a list for pagination
+    """
+
+    items_per_page = 12
+
+    start = (page_number - 1) * items_per_page
+    end = page_number * items_per_page
+
+    paginated_items = items[start:end]
+
+    return paginated_items
+
+
+def get_total_pages(items):
+    """
+    returns the total number of pages for a list of serialized items
+    """
+
+    items_per_page = 12
+
+    if len(items) % items_per_page == 0:
+        return int(len(items) / items_per_page)
+
+    pages = int(len(items) / items_per_page + 1)
+
+    return pages

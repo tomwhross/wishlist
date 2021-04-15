@@ -21,19 +21,46 @@
 
     <div id="message" class="alert alert-primary" role="alert" style="max-width: 800px; margin: auto; margin-top: 10px; margin-bottom: 20px;"></div>
 
-    <div id="login" style="display: inline; max-width: 300px; margin-left: auto; margin-right: auto; margin-top: 80px;">
-        <form action="{% url 'login' %}" method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <input autofocus class="form-control" type="text" name="username" placeholder="Username" autocomplete="username">
-            </div>
-            <div class="form-group">
-                <input class="form-control" type="password" name="password" placeholder="Password" autocomplete="current-password">
-            </div>
-            <input class="btn btn-primary" type="submit" value="Login" style="margin-top: 10px;">
-        </form>
-        <div style="margin-top: 5px;">
-            Don't have an account? <a href="{% url 'register' %}">Register here.</a>
+    <div id="login" style="display: inline; max-width: 800px; margin-left: auto; margin-right: auto; margin-top: 80px;">
+        <div class="container d-flex justify-content-center">
+            <form id="login-form" onsubmit="return false;">
+                <div class="form-group" style="margin-top: 10px;">
+                    <input id="login-username" autofocus class="form-control" type="text" name="username" placeholder="Username" autocomplete="username" required>
+                </div>
+                <div class="form-group"  style="margin-top: 10px;">
+                    <input id="login-password" class="form-control" type="password" name="password" placeholder="Password" autocomplete="current-password" required>
+                </div>
+                <input id="login-submit" class="btn btn-primary" type="submit" value="Login" style="margin-top: 20px; float: right;">
+                
+            </form>
+        </div>
+
+        <div class="container d-flex justify-content-center" style="display: inline; margin-top: 45px; float: right;">
+            Don't have an account? <a id="login-register" href="#">Register here.</a>
+        </div>
+        
+    </div>
+
+    <div id="register" style="display: inline; max-width: 800px; margin-left: auto; margin-right: auto; margin-top: 80px;">
+        <div class="container d-flex justify-content-center">
+            <form id="registration-form" onsubmit="return false;">
+                <div class="form-group" style="margin-top: 10px;">
+                    <input id="register-username" class="form-control" autofocus type="text" name="username" placeholder="Username" autocomplete="username" required>
+                </div>
+                <div class="form-group" style="margin-top: 10px;">
+                    <input id="register-email" class="form-control" type="email" name="email" placeholder="Email Address" autocomplete="username" required>
+                </div>
+                <div class="form-group" style="margin-top: 10px;">
+                    <input id="register-password" class="form-control" type="password" name="password" placeholder="Password" autocomplete="new-password" required>
+                </div>
+                <div class="form-group" style="margin-top: 10px;">
+                    <input id="register-confirmation" class="form-control" type="password" name="confirmation" placeholder="Confirm Password" autocomplete="new-password" required>
+                </div>
+                <input id="register-submit" class="btn btn-primary" type="submit" value="Register" style="margin-top: 20px; float: right;">
+            </form>
+        </div>
+        <div class="container d-flex justify-content-center" style="display: inline; margin-top: 45px; float: right;">
+            Already have an account? <a id="register-login" href="#">Log In here.</a>
         </div>
     </div>
 
@@ -59,13 +86,13 @@
         </div>
     </div> {% endcomment %}
 
-    <div id="add-game" class="container" style="max-width: 800px;">
+    <div id="add-game" class="container">
         <div class="row">
-            <div class="col-sm">
-                <div id="game-form-view" style="max-width: 660px; margin-left: auto; margin-right: auto; margin-top: 10px;">
+            <div class="col-sm d-flex justify-content-center">
+                <div id="game-form-view" style="margin-top: 10px;">
                     <form id="add-game-form">
                         <div class="form-group">
-                            <textarea autofocus class="form-control" id="game-url" name="game-url" required="required" maxlength="1000" placeholder="Xbox Store game page URL"></textarea>
+                            <textarea autofocus class="form-control" id="game-url" name="game-url" required="required" maxlength="800" placeholder="Xbox Store game page URL"></textarea>
                         </div>
                         <span class="align-bottom">
                             <div class="row algin-bottom">
@@ -80,7 +107,7 @@
         </div>
     </div>
 
-    <div id="gamelist-view"></div>
+    <div id="gamelist-view" style="margin-left: 10%; margin-right: 10%;"></div>
 
     <div id="game-view"></div>
 
@@ -90,6 +117,15 @@
             <div id="spinner-widget" class="spinner-border mx-auto" role="status" aria-hidden="true"></div>
         </div>
     </div>
+
+
+    <div id="pages" class="text-xs-center" style="margin-left: auto; margin-right: auto; margin-top: 50px;">
+        <nav aria-label="pages">
+            <ul id="paginator" class="pagination justify-content-center" style="text-align: center;">
+            </ul>
+        </nav>
+    </div>
+
 
 {% endblock body %}
 

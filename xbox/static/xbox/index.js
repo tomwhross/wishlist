@@ -1,15 +1,46 @@
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('login').style.display = 'none';
-  document.getElementById("add-game").style.display = 'none';
+  document.getElementById('add-game').style.display = 'none';
   document.getElementById('message').style.display = 'none';
   document.getElementById('spinner').style.display = 'none';
+  document.getElementById('register').style.display = 'none';
 
   // Use buttons to toggle between views
   document.querySelector('#sale-games-button').addEventListener('click', () => load_gamelist('sale-games'));
   document.querySelector('#wishlist-games-button').addEventListener('click', () => load_gamelist('wishlist-games'));
   document.querySelector('#all-games-button').addEventListener('click', () => load_gamelist('all-games'));
 
-  // add the search
+  // register
+  // display the registration form when the user clicks on the Register nav item
+  // attach the click event if the nav item exists
+  const nav_register = document.getElementById('nav-register');
+  if (nav_register) {
+    nav_register.addEventListener('click', () => display_view('register'));
+  }
+  
+  document.getElementById('registration-form').onsubmit = () => {
+    register();
+    return false;
+  }
+  
+  // login
+  const nav_login = document.getElementById('nav-login');
+  if (nav_login) {
+    nav_login.addEventListener('click', () => display_view('login'));
+  }
+
+  document.getElementById('login-form').onsubmit = () => {
+    login();
+    return false;
+  }
+
+  // logout
+  const nav_logout = document.getElementById('nav-logout');
+  if (nav_logout) {
+    nav_logout.addEventListener('click', () => logout());
+  }
+
+  // add the search form to the sub nav
   document.querySelector('#search-form').addEventListener('submit', () => search());
 
   // add new game
@@ -22,20 +53,36 @@ document.addEventListener('DOMContentLoaded', function() {
     return false;
   }
 
+  // entrypoint
   // by default load the sale games view
   load_gamelist('sale-games');
 });
 
 
+function logout() {
+  // logout from the server and display the login view
+
+  fetch('/logout')
+  .then(response => {
+    
+    rebuild_nav_menu('logout'); 
+    display_view('login');
+  }
+  );
+}
+
+
 function display_view(view) {
   // change the view displayed
-
+  
+  document.getElementById('paginator').innerHTML = '';
   document.getElementById('login').style.display = 'none';
   document.getElementById('add-game').style.display = 'none';
   document.getElementById('message').style.display = 'none';
   document.getElementById('gamelist-view').style.display = 'none';
   document.getElementById('game-view').style.display = 'none';
   document.getElementById('spinner').style.display = 'none';
+  document.getElementById('register').style.display = 'none';
 
   switch(view) {
     case 'login':
@@ -56,13 +103,136 @@ function display_view(view) {
     case 'spinner':
       document.getElementById('spinner').style.display = 'block';
       break; 
+    case 'register':
+      document.getElementById('register').style.display = 'block';
+      document.getElementById('register-login').addEventListener('click', () => display_view('login'));
+      break; 
   } 
 }
 
 
-function add_game() {
+function register() {
+  // register the user and log them in
 
-  console.log(document.querySelector('#game-url').value);
+  const username = document.getElementById('register-username').value;
+  const email = document.getElementById('register-email').value;
+  const password = document.getElementById('register-password').value;
+  const confirmation = document.getElementById('register-confirmation').value;
+
+  fetch('/register', {
+
+    method: 'POST',
+    mode: 'same-origin',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': get_cookie('csrftoken') 
+    },
+    body: JSON.stringify({
+      username: username,
+      email: email,
+      password: password,
+      confirmation: confirmation
+    })
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.error || !result.user.is_authenticated) {
+      display_message(gamelist='', message_text=result.error);
+    }
+    else {
+      rebuild_nav_menu('login'); 
+      load_gamelist('sale-games');
+    }
+  });
+}
+
+
+function rebuild_nav_menu(action) {
+  // rebuild the nav menu for login and logout actions
+  const nav_menu = document.getElementById('nav-menu');
+  nav_menu.innerHTML = '';
+
+  if (action === 'logout') {
+    const login_li = document.createElement('li');
+    login_li.className = 'nav-item';
+    login_li.id = 'nav-logout-li';
+    const login_link = document.createElement('a');
+    login_link.className = 'nav-link';
+    login_link.id = 'nav-login';
+    login_link.href = '#';
+    login_link.innerHTML = 'Log In';
+    login_li.addEventListener('click', () => display_view('login'));
+    login_li.append(login_link);
+
+    nav_menu.append(login_li); 
+
+    const register_li = document.createElement('li');
+    register_li.className = 'nav-item';
+    register_li.id = 'nav-logout-li';
+    const register_link = document.createElement('a');
+    register_link.className = 'nav-link';
+    register_link.id = 'nav-register';
+    register_link.href = '#';
+    register_link.innerHTML = 'Register';
+    register_link.addEventListener('click', () => display_view('register'));
+    register_li.append(register_link)
+
+    nav_menu.append(register_li); 
+  }
+  else {
+    const logout_li = document.createElement('li');
+    logout_li.className = 'nav-item';
+    logout_li.id = 'nav-logout-li';
+    const logout_link = document.createElement('a');
+    logout_link.className = 'nav-link';
+    logout_link.id = 'nav-logout';
+    logout_link.href = '#';
+    logout_link.innerHTML = 'Log Out';
+    logout_li.addEventListener('click', () => logout());
+    logout_li.append(logout_link);
+
+    nav_menu.append(logout_li);
+  }
+}
+
+
+function login() {
+  // log the user in and take them back to the sale page
+
+  const username = document.getElementById('login-username').value;
+  const password = document.getElementById('login-password').value;
+
+  fetch('/login', {
+
+    method: 'POST',
+    mode: 'same-origin',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': get_cookie('csrftoken') 
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password
+    })
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.error || !result.user.is_authenticated) {
+      display_message(gamelist='', message_text=result.error);
+    }
+    else {
+      rebuild_nav_menu('login'); 
+      load_gamelist('sale-games');
+    }
+  });
+}
+
+
+function add_game() {
+  // add a game to the app
+
   fetch('/add_game', {
 
     method: 'POST',
@@ -105,7 +275,9 @@ function reset_gamelist_nav_buttons() {
 
 function view_game(game_id) {
   // view for a individual game
-  console.log('getting called');
+  
+  // hide the heading
+  document.getElementById('view-heading').style.display = 'none';
 
   reset_gamelist_nav_buttons();
   // view_heading = document.getElementById('view-heading');
@@ -122,8 +294,6 @@ function view_game(game_id) {
   fetch(`/game/${game_id}`)
   .then(response => response.json())
   .then(game => {
-
-    
     game_view_card.className = 'card d-flex flex-column game-view-card';
 
     const game_view_card_row = document.createElement('div');
@@ -157,7 +327,6 @@ function view_game(game_id) {
       window.open(game.url, "_blank");
     }
 
-
     game_view_card_body.append(store_button);
     game_view_card_body.append(game_card_title);
     game_view_card_body.append(game_card_discount);
@@ -171,8 +340,6 @@ function view_game(game_id) {
     game_view_card_row.append(game_view_card_image_container);
     game_view_card_row.append(game_view_card_body_container);
     game_view_card.append(game_view_card_row);
-    // game_view.append(game_view_card);
-
   });
 
   const game_price_history_container = document.createElement('div');
@@ -185,7 +352,6 @@ function view_game(game_id) {
   game_price_history_container_title.style.fontWeight = 'bold';
 
   game_price_history_container_title.innerHTML = 'Previous Price History';
-
 
   const game_price_history_table = document.createElement('table');
   game_price_history_table.className = 'table';
@@ -213,49 +379,41 @@ function view_game(game_id) {
   fetch(`/prices/${game_id}`)
   .then(response => response.json())
   .then(prices => {
-    prices.forEach(function(price) {
+    if (prices.length > 0) {
+      prices.forEach(function(price) {
+        const table_row = document.createElement('tr');
+        const table_row_price = document.createElement('td');
+        table_row_price.innerHTML = `$${price.price}`;
 
-      console.log(price.price);
-      if (price.price) {
-        price_history = true;
-        console.log('set');
-      }
+        const table_row_sale = document.createElement('td');
+        table_row_sale.innerHTML = `${price.noted_sale_type}`;
 
-      const table_row = document.createElement('tr');
+        const table_row_date = document.createElement('td');
+        table_row_date.innerHTML = `${price.created_at}`;
 
-      const table_row_price = document.createElement('td');
-      table_row_price.innerHTML = `$${price.price}`;
+        table_row.append(table_row_price);
+        table_row.append(table_row_sale);
+        table_row.append(table_row_date);
 
-      const table_row_sale = document.createElement('td');
-      table_row_sale.innerHTML = `${price.noted_sale_type}`;
+        table_body.append(table_row);
+      });
 
-      const table_row_date = document.createElement('td');
-      table_row_date.innerHTML = `${price.created_at}`;
-
-
-      table_row.append(table_row_price);
-      table_row.append(table_row_sale);
-      table_row.append(table_row_date);
-
-      table_body.append(table_row);
-    });
-
-    game_price_history_table.append(table_body);
+      game_price_history_table.append(table_body);
+    }
+    else {
+      game_price_history_container.innerHTML = '';
+    }
     
   });
   game_price_history_container.append(game_price_history_container_title);
   game_price_history_container.append(game_price_history_table);
   game_view.append(game_view_card);
   game_view.append(game_price_history_container);
-  
 }
 
 
 function display_message(gamelist='', message_text='') {
   message = document.getElementById('message');
-
-  console.log(`message: ${message_text}`);
-  console.log(`gamelist: ${gamelist}`);
 
   if (gamelist === '' && message_text !== '') {
     message.className = 'alert alert-danger';
@@ -270,7 +428,6 @@ function display_message(gamelist='', message_text='') {
   else {
     message.innerHTML = 'Something went wrong, try reloading the page'
   }
-
   message.style.display = 'block';
 }
 
@@ -395,8 +552,14 @@ function generate_game_card_days_left(game) {
     days_sale_left_span.className = 'card-text';
     const days_sale_left_small = document.createElement('small');
     days_sale_left_small.className = 'text-muted';
-    days_sale_left_small.innerHTML = `<b>${game.days_left_on_sale}</b> days left on sale`;
-
+    
+    if (game.days_left_on_sale < 2) {
+      days_sale_left_small.innerHTML = `<b>${game.days_left_on_sale}</b> day left on sale`;
+    }
+    else{
+      days_sale_left_small.innerHTML = `<b>${game.days_left_on_sale}</b> days left on sale`;
+    }
+    
     days_sale_left_span.append(days_sale_left_small);
     days_sale_left_paragraph.append(days_sale_left_span);
   }
@@ -429,12 +592,13 @@ function generate_game_card_lowest_price(game) {
 
 
 function generate_game_card_wishlist_cta(game, list = true) {
+  // generate the add/cut from wishlist button for cards or card
 
   const wishlist_cta_div = document.createElement('div');
-  wishlist_cta_div.className = 'd-grid gap-2 col-12 mx-auto mt-auto align-bottom';
+  wishlist_cta_div.className = 'd-grid gap-2 col-12 mx-auto mt-auto align-bottom wishlist-button';
 
   const wishlist_cta_button = document.createElement('button');
-  wishlist_cta_button.className = 'btn-sm btn-primary';
+  wishlist_cta_button.className = 'btn-sm btn-primary wishlist-button';
 
   if (!list) {
     wishlist_cta_button.classList.add('game-view-card-cta');
@@ -444,14 +608,16 @@ function generate_game_card_wishlist_cta(game, list = true) {
   wishlist_cta_button.style.fontSize = '13px';
   
   const wishlist_cta_text_span = document.createElement('span');
+  wishlist_cta_text_span.className = 'wishlist-button';
   const wishlist_cta_icon_span = document.createElement('span');
+  wishlist_cta_icon_span.className = 'wishlist-button'
   const wishlist_cta_icon = document.createElement('i');
-  wishlist_cta_icon.className = 'fas fa-star';
+  wishlist_cta_icon.className = 'fas fa-star wishlist-button';
   wishlist_cta_icon.style.marginRight = '8px';
   
   if (game.is_wishlist_user) {
     wishlist_cta_icon.style.color = 'orange';
-    wishlist_cta_text_span.innerHTML = 'Remove from wishlist';
+    wishlist_cta_text_span.innerHTML = 'Cut from wishlist';
   }
   else {
     wishlist_cta_icon.style.color = 'white';
@@ -477,14 +643,12 @@ function generate_game_card_wishlist_cta(game, list = true) {
         // the user is not logged in, so hide everything and show the login view
         const view_heading = document.getElementById('view-heading');
         view_heading.style.display = 'none';
-        document.getElementById('gamelist-view').style.display = 'none'; 
-        document.getElementById('game-view').style.display = 'none';
-        document.getElementById('login').style.display = 'block';
+        display_view('login'); 
       }
       else {
         if (game.is_wishlist_user === true) {
           wishlist_cta_icon.style.color = 'orange';
-          wishlist_cta_text_span.innerHTML = 'Remove from wishlist';
+          wishlist_cta_text_span.innerHTML = 'Cut from wishlist';
         }
         else {
           wishlist_cta_icon.style.color = 'white';
@@ -539,22 +703,6 @@ function generate_game_card(game) {
   const wishlist_cta_div = generate_game_card_wishlist_cta(game);
   card_body.append(wishlist_cta_div);
 
-  linkable_elements = [
-    card_cover_image,
-    card_title,
-    card_line,
-    discount_badge_parapgrah,
-    card_price_data,
-    badges_paragraph,
-    days_sale_left_paragraph,
-  ];
-
-  linkable_elements.forEach(function(linkable_element) {
-    linkable_element.onclick = function() {
-      view_game(game.id);
-    }
-  });
-
   card.onmouseover = function() {
     card_title.style.color = '#007bff';
     card_cover_image.style.filter = 'blur(0px)';
@@ -572,12 +720,21 @@ function generate_game_card(game) {
   card.append(card_cover_div);
   card.append(card_body);
 
+  card.onclick = function(e) {
+    if (!e.target.classList.contains('wishlist-button')) {
+      view_game(game.id);
+    }
+  }
+
   col.append(card);
 
   return col;
 }
 
+
 function view_games(games, gamelist) {
+  // generate the view for a gamelist
+
   // reset the page
   display_view('gamelist-view');
 
@@ -609,6 +766,13 @@ function view_games(games, gamelist) {
 
 
 function search() {
+  // search functionality
+  // submit a search term to the back end and display matching results
+  // if there are no results, show the add game form
+
+  // hide the paginator
+  document.getElementById('paginator').innerHTML = '';
+  reset_gamelist_nav_buttons();
 
   // update the heading
   const view_heading = document.getElementById('view-heading');
@@ -638,23 +802,87 @@ function search() {
         const message = document.getElementById('message');
         message.innerHTML = 'There are no games matching that title, try a new search or add a URL from the Xbox Store (Canada)';
         display_view('add-game');
-        // document.querySelector('#gamelist-view').style.display = 'none';
-        // document.getElementById('add-game').style.display = 'block';
         message.style.display = 'block';
         
       }
     });
   }
-
-// Show the mailbox name
-//   document.querySelector('#mailbox-header').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
-  
 }
 
 
-function load_gamelist(gamelist) {
+function build_paginator(gamelist, current_page, total_pages, has_previous_page, has_next_page) {
+  // build pagination for gamelist views
 
-  // update the hading
+  const paginator = document.getElementById('paginator');
+  paginator.innerHTML = '';
+
+  if (has_previous_page === true) {
+    const page_element = document.createElement('li');
+    page_element.className = 'page-item';
+    const page_link = document.createElement('a');
+    page_link.className = 'page-link';
+    page_link.href = '#';
+    page_link.innerHTML = 'Previous';
+
+    page_element.append(page_link);
+
+    page_element.onclick = function() {
+      load_gamelist(gamelist, current_page - 1);
+    }
+    
+    paginator.append(page_element);
+  }
+
+  var list = [];
+  for (var i = 1; i <= total_pages; i++) {
+    list.push(i);
+  }
+
+  list.forEach(function(page) {
+    const page_element = document.createElement('li');
+    page_element.className = 'page-item';
+    const page_link = document.createElement('a');
+    page_link.className = 'page-link';
+    page_link.innerHTML = page;
+    page_link.href = '#';
+    if (page === current_page) {
+      page_link.style.fontWeight = 'bold';
+    }
+
+    page_element.append(page_link);
+
+    page_element.onclick = function() {
+      load_gamelist(gamelist, page);
+    }
+    
+    paginator.append(page_element);
+
+  });
+
+  if (has_next_page === true) {
+    const page_element = document.createElement('li');
+    page_element.className = 'page-item';
+    const page_link = document.createElement('a');
+    page_link.className = 'page-link';
+    page_link.href = '#';
+    page_link.innerHTML = 'Next';
+
+    page_element.append(page_link);
+
+    page_element.onclick = function() {
+      load_gamelist(gamelist, current_page + 1);
+    }
+    
+    paginator.append(page_element);
+  }
+}
+
+
+function load_gamelist(gamelist, page=false) {
+  // loads a gamelist e.g. sale games
+  // fetches the games in the gamelist from the server
+
+  // update the heading
   const view_heading = document.getElementById('view-heading');
 
   if (gamelist == 'sale-games') {
@@ -679,32 +907,43 @@ function load_gamelist(gamelist) {
   reset_gamelist_nav_buttons();
   const active_button = document.getElementById(`${gamelist}-button`);
   active_button.className = 'btn btn-sm btn-primary gamelist-nav-btn';
-  
-  // document.querySelector('#compose-view').style.display = 'none';
-  // document.querySelector('#email-view').style.display = 'none';
 
   // get the list of emails for the requested mailbox
-  fetch(`/games/${gamelist}`)
+  url = `/games/${gamelist}`;
+  if (page) {
+    url = `/games/${gamelist}/${page}`;
+  }
+  fetch(url)
   .then(response => response.json())
   .then(games => {
     if (games.error) {
-      // load_gamelist('sale-games');
       const view_heading = document.getElementById('view-heading');
       view_heading.style.display = 'none';
       display_view('login'); 
     }
     else {
-      view_games(games, gamelist)
-    }
-    
-  });
+      view_games(games.games, gamelist);
 
-// Show the mailbox name
-//   document.querySelector('#mailbox-header').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+      if (games.total_pages > 1) {
+        build_paginator(
+          gamelist,
+          games.current_page,
+          games.total_pages,
+          games.has_previous_page,
+          games.has_next_page
+        );
+      }
+      else {
+        document.getElementById('paginator').innerHTML = '';
+      }
+    }
+  });
 }
 
 
 function get_cookie(name) {
+  // support for django CSRF tokens in Javascript
+  // sourced from https://docs.djangoproject.com/en/3.1/ref/csrf/#ajax
   let cookie_value = null;
   if (document.cookie && document.cookie !== '') {
       const cookies = document.cookie.split(';');
