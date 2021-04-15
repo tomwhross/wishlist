@@ -1,8 +1,11 @@
+import kronos
 from django.core.management.base import BaseCommand, CommandError
 from xbox.models import Game
 from xbox.util import update_games_price
 
 
+# automatically run task to update all game prices every 8 hours on the hour
+@kronos.register("0 */8 * * *")
 class Command(BaseCommand):
     help = "Updates game prices, sale info, and price history"
 

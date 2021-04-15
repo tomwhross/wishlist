@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "xbox",
+    "kronos",
     "django_extensions",
     "django.contrib.admin",
     "django.contrib.auth",
