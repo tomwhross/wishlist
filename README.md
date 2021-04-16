@@ -1,7 +1,15 @@
 # wishlist
-Wishlist - A CS50x Web Capstone Project https://cs50.harvard.edu/web/2020/projects/final/capstone/
+**wishlist** - A CS50x Web Capstone Project https://cs50.harvard.edu/web/2020/projects/final/capstone/
 
-# Overview
+# Table of Contents
+- [Overview](#id-section1)
+- [Details, Details](#id-section2)
+- [The User Experience](#id-section3)
+- [How It Works](#id-section4)
+- [Set Up Instructions](#id-section5)
+
+<div id='id-section1'/>
+## Overview
 *wishlist* was inspired by some anti-consumer moves both Microsoft and Sony have made
 recently. In 2020, both Sony and Microsoft removed all wishlist functionality from
 their respective sites. Wishlists were handy for a few reasons. First, it let users
@@ -26,7 +34,8 @@ to redirect me to the Canadian store. One update that would be required to suppo
 locals and currencies would be multicurrency, which seemed like a bit too much of an
 undertaking for this project.
 
-# Details
+<div id='id-section2'/>
+## Details, Details
 *wishlist's* back-end was written in Python using the Django library, and the front-end
 was mainly written in Javascript, and does not make much use of Django's templates. While
 Django's templates may have really simplified things, I was really enamoured with the
@@ -43,7 +52,8 @@ and has perhaps the largest crowd-sourced wiki on video games outside of Wikiped
 The API is free and easy to work worth. Currently, while *wishlist* is pulling in a data items
 from the Giant Bomb API, it's currently only making use of the images.
 
-# User Experience
+<div id='id-section3'/>
+## The User Experience
 When a user visits *wishlist*, they will be presented with the games on sale view (assuming
 there are games already loaded into the system; there is a seeder management command if needed,
 more on that in the setup instructions). From there, visitors can navigate to the wishlist view,
@@ -60,7 +70,8 @@ on the search term and return any matching results. However, if no results are f
 the user will be shown an add-game form which takes one value: a URL from the Canadian Xbox Game Store.
 Upon submission, the user will be shown the game entry within the application.
 
-# How it Works
+<div id='id-section4'/>
+## How It Works
 When the user submits a URL, it is validated to ensure that is a URL for the Canadian Xbox Game Store,
 to the best of my ability. Then the back-end will use a combination of the _requests_ and 
 _beautifulsoup4_ libraries to retrieve the game store page and parse out the relevant details: the
@@ -86,7 +97,10 @@ As I was not using Django templates, and because I was using plain Django instea
 have been the perhaps more appropriate Django Rest Framework, I had to write my own paginator
 for serialized responses.
 
-# Set Up Instructions
+<div id='id-section5'/>
+## Set Up Instructions
+
+_Note_: All commands listed below are intended to be run in the terminal, not the Python shell
 
 1. (_Optional_) Create the virtual environment of your choice. This application was built with Python 3.8.5,
 so I recomment using a combination of [_pyenv_](https://github.com/pyenv/pyenv) and the virtual environment
@@ -140,7 +154,7 @@ $> python manage.py migrate
 $> python manage.py seed_games
 ```
 
-9. (_Recommended_) Register the cron job to update games every 8 hours
+9. (_Recommended_) Register the cron job to update games in the background every 8 hours
 
 ```
 $> python manage.py installtasks
@@ -151,8 +165,3 @@ $> python manage.py installtasks
 ```
 $> python manage.py runserver
 ```
-
-
-
-
-
