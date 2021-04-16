@@ -10,7 +10,6 @@ class Command(BaseCommand):
     help = "Updates game prices, sale info, and price history"
 
     def add_arguments(self, parser):
-        # parser.add_argument("game_ids", nargs="+", type=int)
         parser.add_argument(
             "--game_ids",
             type=int,
