@@ -9,6 +9,7 @@
 - [Set Up Instructions](#id-section5)
 
 <div id='id-section1'/>
+
 ## Overview
 *wishlist* was inspired by some anti-consumer moves both Microsoft and Sony have made
 recently. In 2020, both Sony and Microsoft removed all wishlist functionality from
@@ -35,6 +36,7 @@ locals and currencies would be multicurrency, which seemed like a bit too much o
 undertaking for this project.
 
 <div id='id-section2'/>
+
 ## Details, Details
 *wishlist's* back-end was written in Python using the Django library, and the front-end
 was mainly written in Javascript, and does not make much use of Django's templates. While
@@ -53,6 +55,7 @@ The API is free and easy to work worth. Currently, while *wishlist* is pulling i
 from the Giant Bomb API, it's currently only making use of the images.
 
 <div id='id-section3'/>
+
 ## The User Experience
 When a user visits *wishlist*, they will be presented with the games on sale view (assuming
 there are games already loaded into the system; there is a seeder management command if needed,
@@ -71,6 +74,7 @@ the user will be shown an add-game form which takes one value: a URL from the Ca
 Upon submission, the user will be shown the game entry within the application.
 
 <div id='id-section4'/>
+
 ## How It Works
 When the user submits a URL, it is validated to ensure that is a URL for the Canadian Xbox Game Store,
 to the best of my ability. Then the back-end will use a combination of the _requests_ and 
@@ -98,6 +102,7 @@ have been the perhaps more appropriate Django Rest Framework, I had to write my 
 for serialized responses.
 
 <div id='id-section5'/>
+
 ## Set Up Instructions
 
 _Note_: All commands listed below are intended to be run in the terminal, not the Python shell
