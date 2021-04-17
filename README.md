@@ -207,3 +207,25 @@ price wouldn't change), but hour to hour the ID attribute value would be differe
 entirely to thwart web scrapers. Luckily for me, the ID changed with a sequential number, and always stayed under
 a fairly low ceiling, so it was something I could work around.
 
+
+## Files
+
+ - /requirements.txt - External libraries this application is dependent upon
+ - /requirements_dev.txt - 
+
+| File                           | Description                |
+| ------------------------------ |:-----------------:       |
+| ./requirements.txt             | External libraries this application is dependent upon            |
+| ./requirements_dev.txt         | Optional development libraries                 |
+| ./README.md                    | This file                 |
+| ./wishlist/settings.py         | Application settings and registration                |
+| ./wishlist/urls.py             | App-wide route registration                          |
+| ./xbox/admin.py                | Model registration for admin console                 |
+| ./xbox/apps.py                 | Application registration                             |
+| ./xbox/constants.py            | Application-wide constants                           |
+| ./xbox/models.py               | Application ORM models, contains User, Game, GameDetails, GamePriceHistory models |
+| ./xbox/urls.py                 | Application route registration                       |
+| ./xbox/util.py                 | Custom helper functions, contains the scraper logic                |
+| ./xbox/views.py                | Views to take requests and render JSON responses to the front-end |
+| ./xbox/management/commands/seed_games.py | Command to insert an initial collection of games into a the database |
+| ./xbox/management/commands/update_games.py | Command to update selected or all game data, can be registered as a cron |
