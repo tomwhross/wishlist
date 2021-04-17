@@ -17,7 +17,7 @@
 ## Overview
 *wishlist* was inspired by some anti-consumer moves both Microsoft and Sony have made
 recently. In 2020, both Sony and Microsoft removed all wishlist functionality from
-their respective sites. Wishlists were handy for a few reasons. First, it let users
+their respective game store sites. Wishlists were handy for a few reasons. First, it let users
 compile a list of games they were generally interested in. Second, if the games were
 on sale, that was generally reflected in the wishlist. This provided a nice way for users
 to filter through the massive stores and really focus on games they were interested in,
