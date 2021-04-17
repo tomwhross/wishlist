@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand, CommandError
 from xbox.constants import SEED_URLS
 from xbox.models import Game, GameDetails, GamePriceHistory
 from xbox.util import (
+    InvalidDomain,
+    NoPrice,
     get_giantbomb_game_details,
     scrape_xbox_store_game_page,
     update_games_price,

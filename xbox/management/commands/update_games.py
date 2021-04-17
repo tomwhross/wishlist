@@ -1,7 +1,7 @@
 import kronos
 from django.core.management.base import BaseCommand, CommandError
 from xbox.models import Game
-from xbox.util import update_games_price
+from xbox.util import InvalidDomain, NoPrice, update_games_price
 
 
 # automatically run task to update all game prices every 8 hours on the hour

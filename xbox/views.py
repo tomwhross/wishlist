@@ -150,15 +150,10 @@ def search(request, search_entry):
 
 
 def login_view(request):
-    # import pdb
-
-    # pdb.set_trace()
     if request.method == "POST":
 
         # Attempt to sign user in
-        # username = request.POST["username"]
         username = json.loads(request.body).get("username", None)
-        # password = request.POST["password"]
         password = json.loads(request.body).get("password", None)
         user = authenticate(request, username=username, password=password)
 
@@ -174,28 +169,6 @@ def login_view(request):
         {"error": "There was a problem logging in"},
         status=400,
     )
-
-
-# def login_view(request):
-#     if request.method == "POST":
-
-#         # Attempt to sign user in
-#         username = request.POST["username"]
-#         password = request.POST["password"]
-#         user = authenticate(request, username=username, password=password)
-
-#         # Check if authentication successful
-#         if user is not None:
-#             login(request, user)
-#             return HttpResponseRedirect(reverse("index"))
-#         else:
-#             return render(
-#                 request,
-#                 "xbox/login.html",
-#                 {"message": "Invalid username and/or password."},
-#             )
-#     else:
-#         return render(request, "xbox/login.html")
 
 
 def logout_view(request):
@@ -298,12 +271,6 @@ def add_game(request):
             game_details.save()
 
         else:
-            print("Game exists, updating")
-
             update_games_price(games)
-
-            if request.user.is_authenticated:
-
-                _ = [game.wishlist_users.add(request.user) for game in games]
 
     return JsonResponse({"game_id": game.id})
