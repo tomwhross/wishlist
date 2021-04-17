@@ -3,16 +3,16 @@
 
 ![Site Image](site-img.png)
 
-# Table of Contents
-- [Overview](#id-section1)
-- [Details, Details](#id-section2)
-- [The User Experience](#id-section3)
-- [How It Works](#id-section4)
-- [Set Up Instructions](#id-section5)
-- [Lessons Learned](#id-section6)
-- [Files](#id-section7)
 
-<div id='id-section1'/>
+# Table of Contents
+- [Overview](#overview)
+- [Details, Details](#details-details)
+- [The User Experience](#the-user-experience)
+- [How It Works](#how-it-works)
+- [Set Up Instructions](#set-up-instructions)
+- [Lessons Learned](#lessons-learned)
+- [Files](#files)
+
 
 ## Overview
 *wishlist* was inspired by some anti-consumer moves both Microsoft and Sony have made
@@ -39,7 +39,6 @@ to redirect me to the Canadian store. One update that would be required to suppo
 locals and currencies would be multicurrency, which seemed like a bit too much of an
 undertaking for this project.
 
-<div id='id-section2'/>
 
 ## Details, Details
 *wishlist's* back-end was written in Python using the Django library, and the front-end
@@ -58,7 +57,6 @@ and has perhaps the largest crowd-sourced wiki on video games outside of Wikiped
 The API is free and easy to work worth. Currently, while *wishlist* is pulling in a data items
 from the Giant Bomb API, it's currently only making use of the images.
 
-<div id='id-section3'/>
 
 ## The User Experience
 When a user visits *wishlist*, they will be presented with the games on sale view (assuming
@@ -77,7 +75,6 @@ on the search term and return any matching results. However, if no results are f
 the user will be shown an add-game form which takes one value: a URL from the Canadian Xbox Game Store.
 Upon submission, the user will be shown the game entry within the application.
 
-<div id='id-section4'/>
 
 ## How It Works
 When the user submits a URL, it is validated to ensure that is a URL for the Canadian Xbox Game Store,
@@ -105,7 +102,6 @@ As I was not using Django templates, and because I was using plain Django instea
 have been the perhaps more appropriate Django Rest Framework, I had to write my own paginator
 for serialized responses.
 
-<div id='id-section5'/>
 
 ## Set Up Instructions
 
@@ -175,7 +171,6 @@ $> python manage.py installtasks
 $> python manage.py runserver
 ```
 
-<div id='id-section6'/>
 
 ## Lessons Learned
 
@@ -210,7 +205,6 @@ price wouldn't change), but hour to hour the ID attribute value would be differe
 entirely to thwart web scrapers. Luckily for me, the ID changed with a sequential number, and always stayed under
 a fairly low ceiling, so it was something I could work around.
 
-<div id='id-section7'/>
 
 ## Files
 
