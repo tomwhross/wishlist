@@ -87,6 +87,7 @@ function display_view(view) {
   switch(view) {
     case 'login':
       document.getElementById('login').style.display = 'block';
+      document.getElementById('login-register').addEventListener('click', () => display_view('register'));
       break;
     case 'add-game':
       document.getElementById('add-game').style.display = 'block';
