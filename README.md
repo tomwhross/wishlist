@@ -213,19 +213,23 @@ a fairly low ceiling, so it was something I could work around.
  - /requirements.txt - External libraries this application is dependent upon
  - /requirements_dev.txt - 
 
-| File                           | Description                |
-| ------------------------------ |:-----------------:       |
-| ./requirements.txt             | External libraries this application is dependent upon            |
-| ./requirements_dev.txt         | Optional development libraries                 |
-| ./README.md                    | This file                 |
-| ./wishlist/settings.py         | Application settings and registration                |
-| ./wishlist/urls.py             | App-wide route registration                          |
-| ./xbox/admin.py                | Model registration for admin console                 |
-| ./xbox/apps.py                 | Application registration                             |
-| ./xbox/constants.py            | Application-wide constants                           |
-| ./xbox/models.py               | Application ORM models, contains User, Game, GameDetails, GamePriceHistory models |
-| ./xbox/urls.py                 | Application route registration                       |
-| ./xbox/util.py                 | Custom helper functions, contains the scraper logic                |
-| ./xbox/views.py                | Views to take requests and render JSON responses to the front-end |
-| ./xbox/management/commands/seed_games.py | Command to insert an initial collection of games into a the database |
-| ./xbox/management/commands/update_games.py | Command to update selected or all game data, can be registered as a cron |
+| File                           | Description                                                                                      |
+| ------------------------------ |:-------------------------------------------------------------------------------------------------|
+| ./requirements.txt             | External libraries this application is dependent upon                                            |
+| ./requirements_dev.txt         | Optional development libraries                                                                   |
+| ./README.md                    | This file                                                                                        |
+| ./wishlist/settings.py         | Application settings and registration                                                            |
+| ./wishlist/urls.py             | App-wide route registration                                                                      |
+| ./xbox/admin.py                | Model registration for admin console                                                             |
+| ./xbox/apps.py                 | Application registration                                                                         |
+| ./xbox/constants.py            | Application-wide constants                                                                       |
+| ./xbox/models.py               | Application ORM models, contains User, Game, GameDetails, GamePriceHistory models                |
+| ./xbox/urls.py                 | Application route registration                                                                   |
+| ./xbox/util.py                 | Custom helper functions, contains the scraper logic                                              |
+| ./xbox/views.py                | Views to take requests and render JSON responses to the front-end                                |
+| ./xbox/management/commands/seed_games.py | Command to insert an initial collection of games into a the database                   |
+| ./xbox/management/commands/update_games.py | Command to update selected or all game data, can be registered as a cron             |
+| ./xbox/templates/xbox/layout.html | Generate layout, baically just the navbar                                                     |
+| ./xobx/templates/xbox/index.html  | All other HTML views, including games-views, game-view, search, add-game, login, and register |
+| ./xbox/static/xbox/index.js       | Contains all the custom Javascript that powers the site                                       |
+| ./xbox/static/xbox/styles.css     | Contains all custom CSS styling                                                               |
