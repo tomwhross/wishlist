@@ -7,6 +7,7 @@
 - [The User Experience](#id-section3)
 - [How It Works](#id-section4)
 - [Set Up Instructions](#id-section5)
+- [Lessons Learned](#id-section6)
 
 <div id='id-section1'/>
 
@@ -170,3 +171,39 @@ $> python manage.py installtasks
 ```
 $> python manage.py runserver
 ```
+
+<div id='id-section6'/>
+
+## Lessons Learned
+
+The largest lesson I think I learned from this exercise is that while not relying on Django's templates
+to general the HTML content can make for a neat user experience, it probably wasn't the best approach for
+this project. First, I had to write a bunch for fetch requests to communicate with the back-end that
+I otherwise wouldn't have had to write - expect for the add/remove to wishlist button status. Second,
+I had to write my own paginator for serialized responses since the Django paginator is expected to work
+with native querysets; this took up an incredibly amount of my time, while I know from experience that 
+implementing the Django paginator is trivial. Third, single-page sites, while novel, are a pain to work
+with for any significant amount of time, as you can't just copy URLs/routes to retry, you constantly
+have to manually navigate through the site to get where you want to be (there might be a way to do this in
+a single page site by updating the URL behind the scenes). On top of that, manually manipulating the DOM
+to create, show, and hide or destory elements is time consuming. It also made me realize how powerful
+and convenient React can be.
+
+The largest amount of time on this site was spent on two thnings: Designing the front-end UI, and testing via
+the front-end. I am familar with Python unittests, Django's implementation of them somewhat, and with Selenium
+for front-end testing, I did not end up implementing any of them due to a lack of time. However, what I should
+have done was written the tests very early. I know TDD prescribes written all the tests up front; but as I was
+very unfamilar with some of the modules I was working with and exactly how I would be using them, that would have been
+difficult. However, if I'd started writing tests 50% of the way through the project, I probably could have saved
+a tonne of time that was later spent on manual testing. Designing the front-end UI would have been a much harder
+task to find time-savings within. I spent a lot of time asking others what they thought of the UI and making changes
+based on their feedback. It felt realistic, but also slow and frustrating at times. This is an area I'd
+have to dig into further.
+
+Next, web scraping is tough and unpredicable, and often thwarted. One of the biggest surprises I found while trying to
+scrape pages from the Xbox Store was that divs that contained vital information would randomly change their 
+identifers throughout the day, for no discernable reason. The content within the div wouldn't change (e.g. the
+price wouldn't change), but hour to hour the ID attribute value would be different. It seems this was done
+entirely to thwart web scrapers. Luckily for me, the ID changed with a sequential number, and always stayed under
+a fairly low ceiling, so it was something I could work around.
+
