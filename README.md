@@ -1,6 +1,8 @@
 # wishlist
 **wishlist** - A CS50x Web Capstone Project https://cs50.harvard.edu/web/2020/projects/final/capstone/
 
+![Site Image](site-img.png)
+
 # Table of Contents
 - [Overview](#id-section1)
 - [Details, Details](#id-section2)
