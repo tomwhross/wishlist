@@ -11,7 +11,7 @@
 - [How It Works](#how-it-works)
 - [Set Up Instructions](#set-up-instructions)
 - [Lessons Learned](#lessons-learned)
-- [Files](#files)
+- [File Descriptions](#file-descriptions)
 
 
 ## Overview
@@ -206,7 +206,7 @@ entirely to thwart web scrapers. Luckily for me, the ID changed with a sequentia
 a fairly low ceiling, so it was something I could work around.
 
 
-## Files
+## File Descriptions
 
 | File                           | Description                                                                                              |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------- |
