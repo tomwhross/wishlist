@@ -19,9 +19,9 @@
 ## Overview
 *wishlist* was inspired by some anti-consumer moves both Microsoft and Sony have made
 recently. In 2020, both Sony and Microsoft removed all wishlist functionality from
-their respective game store sites. Wishlists were handy for a few reasons. First, it let users
+their respective online videogame stores. Wishlists were handy for a few reasons. First, it let users
 compile a list of games they were generally interested in. Second, if the games were
-on sale, that was generally reflected in the wishlist. This provided a nice way for users
+on sale, that was often reflected in the wishlist. This provided a nice way for users
 to filter through the massive stores and really focus on games they were interested in,
 and perhaps purchase them at a price they agreed with. *wishlist* was heavily inspired
 by the site [DekuDeals](https://www.dekudeals.com/), which shares much of the same
@@ -45,16 +45,16 @@ undertaking for this project.
 ## Details, Details
 *wishlist's* back-end was written in Python using the Django library, and the front-end
 was mainly written in Javascript, and does not make much use of Django's templates. While
-Django's templates may have really simplified things, I was really enamoured with the
+Django's templates may have simplified things, I was really enamoured with the
 idea of a single-page site that doesn't redirect or reload between routes. I also wanted
-more practice working in Javascript, and after this excercise, see the appeal of tools
+more practice working in Javascript, and after this exercise see the appeal of tools
 like React that do not require DOM manipulation. Javascript fetch requests are used
 to communicate with the back-end, which means the back-end is almost operating like
-and API, just passing JSON messages back and forth. I thought that might help future-proof
+an API, just passing JSON messages back and forth. I thought that might help future-proof
 it in some ways, since the back-end and front-end are completely decoupled.
 
 The data for *wishlist* comes from two primary sources: The Canadian Xbox Game Store,
-and the [Giant Bomb API](https://www.giantbomb.com/api/). Giant Bomb is a site dedicated to video games,
+and the [Giant Bomb API](https://www.giantbomb.com/api/). Giant Bomb is a site dedicated to videogames,
 and has perhaps the largest crowd-sourced wiki on video games outside of Wikipedia itself.
 The API is free and easy to work worth. Currently, while *wishlist* is pulling in a data items
 from the Giant Bomb API, it's currently only making use of the images.
@@ -111,7 +111,7 @@ _Note_: All commands listed below are intended to be run in the terminal, not th
 
 1. (_Optional_) Create the virtual environment of your choice. This application was built with Python 3.8.5,
 so I recomment using a combination of [_pyenv_](https://github.com/pyenv/pyenv) and the virtual environment
-manager in the standart library:
+manager in the standard library:
 
 ```
 $> mkdir py385 && cd py385
@@ -177,9 +177,9 @@ $> python manage.py runserver
 ## Lessons Learned
 
 The largest lesson I think I learned from this exercise is that while not relying on Django's templates
-to general the HTML content can make for a neat user experience, it probably wasn't the best approach for
+to generate the HTML content can make for a neat user experience, it probably wasn't the best approach for
 this project. First, I had to write a bunch for fetch requests to communicate with the back-end that
-I otherwise wouldn't have had to write - expect for the add/remove to wishlist button status. Second,
+I otherwise wouldn't have had to write - aside from the add/remove to wishlist button status. Second,
 I had to write my own paginator for serialized responses since the Django paginator is expected to work
 with native querysets; this took up an incredibly amount of my time, while I know from experience that 
 implementing the Django paginator is trivial. Third, single-page sites, while novel, are a pain to work
@@ -192,7 +192,7 @@ and convenient React can be.
 The largest amount of time on this site was spent on two thnings: Designing the front-end UI, and testing via
 the front-end. I am familar with Python unittests, Django's implementation of them somewhat, and with Selenium
 for front-end testing, I did not end up implementing any of them due to a lack of time. However, what I should
-have done was written the tests very early. I know TDD prescribes written all the tests up front; but as I was
+have done was written the tests very early. I know TDD prescribes writing all the tests up front, but as I was
 very unfamilar with some of the modules I was working with and exactly how I would be using them, that would have been
 difficult. However, if I'd started writing tests 50% of the way through the project, I probably could have saved
 a tonne of time that was later spent on manual testing. Designing the front-end UI would have been a much harder
